@@ -1,0 +1,14 @@
+TARGET_TICKERS = [
+    # Mega-Cap Tech & AI
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "AMD", "AVGO", "PLTR",
+    # Financials & Canadian Banks
+    "JPM", "BRK-B", "BNS", "BMO", "RY", "HOOD", 
+    # Auto & Manufacturing
+    "TSLA", "TM", "GM",
+    # Healthcare & Cybersecurity
+    "JNJ", "LLY", "GEN",
+    # Crypto
+    "BTC-USD", "ETH-USD",
+    # Market Benchmarks
+    "SPY", "QQQ"
+]
