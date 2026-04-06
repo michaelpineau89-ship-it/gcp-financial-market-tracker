@@ -70,7 +70,7 @@ def run_ingestion():
         
         # Write to BQ once!
         df.to_gbq(
-            destination_table="market_tracker.bronze_alphavantage",
+            destination_table="market_tracker.bronze_alpha_quotes",
             project_id=PROJECT_ID,
             if_exists="append"
         )
