@@ -24,6 +24,12 @@ API_KEY = os.environ.get("API_KEY")
 def get_data(ticker, key):
     url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={key}'
     r = requests.get(url)
+
+    if r.status_code == 200:
+        logging.debug(f"Query Success | Ticker: {ticker} | Response: 200")
+    else:
+        logging.warning(f"Query failed | Ticker: {ticker} | Status_Code: {r.status_code} | Response: {r.text} ")
+
     data = r.json()
     
     # Safe extraction in case the API rate-limits us and returns an Error/Information message instead
