@@ -148,12 +148,16 @@ def run():
     # Write all DataFrames to BigQuery (only if non-empty)
     # Using if_exists="append" to preserve historical data
     if not news.empty:
+        news['_ingested_at'] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(news, "market_tracker.bronze_finnhub_news", project_id=PROJECT, if_exists="append")
     if not recommendation.empty:
+        recommendation['_ingested_at'] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(recommendation, "market_tracker.bronze_finnhub_recommendations", project_id=PROJECT, if_exists="append")
     if not financials.empty:
+        financials['_ingested_at'] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(financials, "market_tracker.bronze_finnhub_financials",project_id= PROJECT, if_exists="append")
     if not insider.empty:
+        insider['_ingested_at'] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(insider, "market_tracker.bronze_finnhub_insider", project_id= PROJECT, if_exists="append")
 
     logging.info("Finnhub Ingestion Complete")

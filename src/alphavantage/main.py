@@ -67,7 +67,7 @@ def run_ingestion():
             clean_data.append(clean_row)
             
         df = pd.DataFrame(clean_data)
-        
+        df['_ingested_at'] = pd.Timestamp.utcnow()
         # Write to BQ once!
         df.to_gbq(
             destination_table="market_tracker.bronze_alpha_quotes",
