@@ -8,7 +8,7 @@ import pandas_gbq
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-API_KEY = os.environ.get("FMP_API_KEY") # Make sure to set this locally!
+API_KEY = os.environ.get("API_KEY") # Make sure to set this locally!
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
 PORT = int(os.environ.get("PORT", 8080))
 
@@ -21,9 +21,9 @@ TARGET_TICKERS = [
     "SPY", "QQQ"
 ]
 
-def fetch_fmp_data(endpoint, ticker, key):
+def fetch_fmp_data(endpoint, ticker, key, opt_args = ""):
     """Generic fetcher for FMP endpoints"""
-    url = f"https://financialmodelingprep.com/api/v3/{endpoint}/{ticker}?limit=1&apikey={key}"
+    url = f"https://financialmodelingprep.com/stable/{endpoint}?symbol={ticker}{opt_args}&apikey={key}"
     try:
         r = requests.get(url)
         r.raise_for_status() # Catches 401s and 500s
@@ -41,24 +41,29 @@ def run_fmp_ingestion():
     income_master = []
     balance_master = []
     cashflow_master = []
+    profile_master = []
 
     for ticker in TARGET_TICKERS:
         logging.info(f"Fetching fundamentals for {ticker}...")
         
         # 1. Income Statement
-        inc_data = fetch_fmp_data("income-statement", ticker, API_KEY)
+        inc_data = fetch_fmp_data("income-statement", ticker, API_KEY, opt_args="&limit=1")
         if inc_data:
             income_master.extend(inc_data)
             
         # 2. Balance Sheet
-        bal_data = fetch_fmp_data("balance-sheet-statement", ticker, API_KEY)
+        bal_data = fetch_fmp_data("balance-sheet-statement", ticker, API_KEY, opt_args="&limit=1")
         if bal_data:
             balance_master.extend(bal_data)
             
         # 3. Cash Flow Statement
-        cf_data = fetch_fmp_data("cash-flow-statement", ticker, API_KEY)
+        cf_data = fetch_fmp_data("cash-flow-statement", ticker, API_KEY, opt_args="&limit=1")
         if cf_data:
             cashflow_master.extend(cf_data)
+
+        pr_data = fetch_fmp_data("profile", ticker, API_KEY)
+        if pr_data:
+            profile_master.extend(pr_data)
 
     # Batch Load to BigQuery
     try:
@@ -76,6 +81,11 @@ def run_fmp_ingestion():
             df_cf = pd.DataFrame(cashflow_master).assign(_ingested_at = pd.Timestamp.utcnow())
             pandas_gbq.to_gbq(df_cf, "market_tracker.bronze_fmp_cashflow", project_id=PROJECT, if_exists="append")
             logging.info(f"Loaded {len(df_cf)} rows to Cash Flow table.")
+            
+        if profile_master:
+            df_pr = pd.DataFrame(profile_master).assign(_ingested_at = pd.Timestamp.utcnow())
+            pandas_gbq.to_gbq(df_pr, "market_tracker.bronze_fmp_profile", project_id=PROJECT, if_exists="append")
+            logging.info(f"Loaded {len(df_pr)} rows to profile table.")
             
         return "FMP Ingestion Complete", 200
         
