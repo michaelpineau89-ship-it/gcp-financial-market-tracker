@@ -94,6 +94,7 @@ def run_fmp_ingestion():
         if pr_data:
             profile_master.extend(pr_data)
     # Batch Load to BigQuery
+    logging.info("Loading data")
     try:
         if income_master:
             df_inc = pd.DataFrame(income_master).assign(

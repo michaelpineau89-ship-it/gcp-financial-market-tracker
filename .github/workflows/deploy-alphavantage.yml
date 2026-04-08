@@ -69,8 +69,8 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: 'projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
-          service_account: 'github-actions-runner@mike-personal-portfolio.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/166016129616/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
+          service_account: 'github-actions-sa@mike-personal-portfolio.iam.gserviceaccount.com'
 
       # Step 3: Configure Docker to talk to your GCP Artifact Registry
       - name: Docker Auth

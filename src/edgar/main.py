@@ -181,6 +181,7 @@ def run_edgar_ingestion():
             logging.error(f"Failed to process {entity_name}: {e}")
             continue
 
+    logging.info("Loading the data")
     if master_holdings:
         try:
             # Combine all funds into one massive DataFrame and inject the system timestamp
