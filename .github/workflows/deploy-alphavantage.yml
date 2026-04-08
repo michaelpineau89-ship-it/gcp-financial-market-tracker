@@ -51,7 +51,11 @@ jobs:
 
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: 'write'
+      contents: 'read'
     needs: ci-checks
+    
     steps:
       # Step 1: Pull down your repository code
       - name: Checkout Code
