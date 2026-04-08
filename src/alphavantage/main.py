@@ -7,7 +7,9 @@ import logging
 
 # Initialize the Flask app for Cloud Run
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +91,9 @@ def run_ingestion():
     logging.info("Loading Data to BQ")
     # Batch Load to BigQuery
     if master_data_list:
-        logging.info(f"Collected {len(master_data_list)} records. Processing and cleaning data...")
+        logging.info(
+            f"Collected {len(master_data_list)} records. Processing and cleaning data..."
+        )
 
         # Clean the Alpha Vantage keys (they look like "01. symbol", which BigQuery hates)
         clean_data = []
@@ -99,7 +103,9 @@ def run_ingestion():
 
         df = pd.DataFrame(clean_data)
         df["_ingested_at"] = pd.Timestamp.utcnow()
-        logging.info(f"Data cleaned. Uploading {len(df)} rows to BigQuery table: market_tracker.bronze_alpha_quotes")
+        logging.info(
+            f"Data cleaned. Uploading {len(df)} rows to BigQuery table: market_tracker.bronze_alpha_quotes"
+        )
         # Write to BQ once!
         df.to_gbq(
             destination_table="market_tracker.bronze_alpha_quotes",
