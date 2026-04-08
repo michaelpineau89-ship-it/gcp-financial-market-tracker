@@ -79,6 +79,7 @@ def run_ingestion():
             )
             time.sleep(15)
 
+    logging.info("Loading Data to BQ")
     # Batch Load to BigQuery
     if master_data_list:
         logging.info("Batching complete. Loading to BigQuery...")

@@ -158,6 +158,7 @@ def run():
 
     # Write all DataFrames to BigQuery (only if non-empty)
     # Using if_exists="append" to preserve historical data
+    logging.info("Loading the data to BQ")
     if not news.empty:
         news["_ingested_at"] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(
