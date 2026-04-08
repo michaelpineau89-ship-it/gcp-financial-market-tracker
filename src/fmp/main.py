@@ -42,6 +42,7 @@ def run_fmp_ingestion():
     balance_master = []
     cashflow_master = []
     profile_master = []
+    ownership_master = []
 
     for ticker in TARGET_TICKERS:
         logging.info(f"Fetching fundamentals for {ticker}...")
@@ -64,7 +65,6 @@ def run_fmp_ingestion():
         pr_data = fetch_fmp_data("profile", ticker, API_KEY)
         if pr_data:
             profile_master.extend(pr_data)
-
     # Batch Load to BigQuery
     try:
         if income_master:
