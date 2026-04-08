@@ -120,21 +120,28 @@ def parse_sec_xml(xml_content):
 
 @app.route("/", methods=["POST"])
 def run_edgar_ingestion():
+    logging.info("="*60)
     logging.info("Starting SEC EDGAR Ingestion Pipeline...")
+    logging.info(f"Project: {PROJECT}")
+    logging.info(f"Processing {len(TARGET_TICKERS)} standard tickers + {len(WHALE_CIKS)} institutional funds")
+    logging.info("="*60)
 
     # 1. Dynamically fetch the CIKs for your standard tickers
+    logging.info("Fetching CIK mappings for standard tickers...")
     dynamic_ciks = get_ticker_cik_mapping(TARGET_TICKERS, HEADERS)
+    logging.info(f"✓ Retrieved CIK mappings for {len(dynamic_ciks)} tickers")
 
     # 2. Merge them into one master targeting dictionary
     # This results in: {"AAPL": "0000320193", "Berkshire Hathaway": "0001067983", ...}
     master_targets = {**dynamic_ciks, **WHALE_CIKS}
+    logging.info(f"✓ Total entities to process: {len(master_targets)}")
 
     master_submissions = []
     master_holdings = []
 
     # 3. Proceed with the loop we built earlier!
-    for entity_name, cik in master_targets.items():
-        logging.info(f"Querying SEC EDGAR for {entity_name} (CIK: {cik})...")
+    for idx, (entity_name, cik) in enumerate(master_targets.items(), start=1):
+        logging.info(f"[{idx}/{len(master_targets)}] Querying SEC EDGAR for {entity_name} (CIK: {cik})...")
 
         try:
             # 1. Fetch the raw Submissions JSON
@@ -158,14 +165,16 @@ def run_edgar_ingestion():
                 project_id=PROJECT,
                 if_exists="append",
             )
-            logging.info(f"Loaded full filing history for {entity_name}")
+            logging.info(f"✓ Loaded {len(submissions_df)} filings for {entity_name}")
 
             # 3. CHECK FOR RECENT 13Fs TO PARSE THE XML
             thirteen_fs = submissions_df[submissions_df["form"] == "13F-HR"]
 
             if not thirteen_fs.empty:
                 latest_filing = thirteen_fs.iloc[0]
+                filing_date = latest_filing["filingDate"]
                 accession_no_clean = latest_filing["accessionNumber"].replace("-", "")
+                logging.info(f"  Found 13F-HR filing from {filing_date}. Parsing holdings...")
 
                 # Download and parse the raw XML
                 xml_url = f"https://www.sec.gov/Archives/edgar/data/{cik.lstrip('0')}/{accession_no_clean}/infotable.xml"
@@ -174,19 +183,24 @@ def run_edgar_ingestion():
                 fund_df = parse_sec_xml(xml_response.content)
                 fund_df["entity_name"] = entity_name
                 fund_df["cik"] = cik
+                logging.info(f"  ✓ Parsed {len(fund_df)} holdings from 13F filing")
 
                 master_holdings.append(fund_df)
+            else:
+                logging.debug(f"  No 13F-HR filings found for {entity_name}")
 
         except Exception as e:
             logging.error(f"Failed to process {entity_name}: {e}")
             continue
 
-    logging.info("Loading the data")
+    logging.info("="*60)
+    logging.info("Loading data to BigQuery...")
     if master_holdings:
         try:
             # Combine all funds into one massive DataFrame and inject the system timestamp
             final_df = pd.concat(master_holdings, ignore_index=True)
             final_df = final_df.assign(_ingested_at=pd.Timestamp.utcnow())
+            logging.info(f"Total holdings to upload: {len(final_df)} records from {len(master_holdings)} filings")
 
             pandas_gbq.to_gbq(
                 final_df,
@@ -195,8 +209,11 @@ def run_edgar_ingestion():
                 if_exists="append",
             )
             logging.info(
-                f"Successfully loaded {len(final_df)} institutional holdings to BigQuery."
+                f"✓ Successfully loaded {len(final_df)} institutional holdings to BigQuery"
             )
+            logging.info("="*60)
+            logging.info("✓ SEC EDGAR Ingestion Complete")
+            logging.info("="*60)
             return f"Loaded {len(final_df)} records", 200
 
         except Exception as e:
@@ -207,4 +224,5 @@ def run_edgar_ingestion():
 
 
 if __name__ == "__main__":
+    logging.info(f"🚀 Starting SEC EDGAR Ingestion Service on port {PORT}")
     app.run(host="0.0.0.0", port=PORT)
