@@ -15,6 +15,8 @@ logging.basicConfig(
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
 PORT = int(os.environ.get("PORT", 8080))
 
+# CICD Test: v1.0.1
+
 # The SEC strictly requires you to declare your identity
 HEADERS = {
     "User-Agent": "Freelance Data Solutions mike@freelancedatasolutions.com",
