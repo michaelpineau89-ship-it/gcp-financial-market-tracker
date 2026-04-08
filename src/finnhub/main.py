@@ -168,7 +168,7 @@ def run():
         )
     if not recommendation.empty:
         recommendation["_ingested_at"] = pd.Timestamp.utcnow()
-        pandas_gbq.to_gbq(
+        pandas_gbq.to_gbq( 
             recommendation,
             "market_tracker.bronze_finnhub_recommendations",
             project_id=PROJECT,
