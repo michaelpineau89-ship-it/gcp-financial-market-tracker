@@ -1,4 +1,4 @@
-name: Deploy Edgar Vantage Ingestor
+name: Deploy Edgar Ingestor
 
 on:
   push:
