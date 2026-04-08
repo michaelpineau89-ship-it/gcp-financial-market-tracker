@@ -12,6 +12,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# CICD Test: v1.0.1
+
 API_KEY = os.environ.get("API_KEY")  # Make sure to set this locally!
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
 PORT = int(os.environ.get("PORT", 8080))

@@ -19,6 +19,8 @@ import pandas as pd
 import datetime
 from flask import Flask
 
+# CICD Test: v1.0.1
+
 import logging
 from time import sleep
 import pandas_gbq
