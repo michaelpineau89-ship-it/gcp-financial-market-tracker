@@ -9,7 +9,7 @@ import logging
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-TARGET_TICKERS = [
+TARGET_TICKERS = [ 
     "AAPL",
     "MSFT",
     "GOOGL",

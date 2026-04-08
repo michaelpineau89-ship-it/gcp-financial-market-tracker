@@ -21,7 +21,7 @@ HEADERS = {
     "Accept-Encoding": "gzip, deflate",
 }
 
-TARGET_TICKERS = [
+TARGET_TICKERS = [ 
     "AAPL",
     "MSFT",
     "GOOGL",
