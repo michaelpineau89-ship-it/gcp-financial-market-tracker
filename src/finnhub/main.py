@@ -41,13 +41,15 @@ PROJECT = os.environ.get("PROJECT", "mike-personal-portfolio")  # GCP BigQuery p
 TICKERS = [t.strip() for t in TICKERS_STR.split(",") if t.strip()]
 
 # Log initialization
-logging.info("="*60)
+logging.info("=" * 60)
 logging.info("Finnhub Data Ingestion Service Initialized")
 logging.info(f"Project: {PROJECT} | API Key configured: {bool(API_KEY)}")
 logging.info(f"Date range: {DATE_START} to {DATE_END}")
-logging.info(f"Monitoring {len(TICKERS)} tickers: {', '.join(TICKERS[:5])}{'...' if len(TICKERS) > 5 else ''}")
+logging.info(
+    f"Monitoring {len(TICKERS)} tickers: {', '.join(TICKERS[:5])}{'...' if len(TICKERS) > 5 else ''}"
+)
 logging.info(f"Server port: {PORT}")
-logging.info("="*60)
+logging.info("=" * 60)
 
 
 def make_api_call(client, method, *args, max_retries=3, **kwargs):
@@ -110,10 +112,10 @@ def run():
     Returns:
         JSON response with status "success" on completion
     """
-    logging.info("="*60)
+    logging.info("=" * 60)
     logging.info("Starting Finnhub Ingestion Batch")
     logging.info(f"Processing {len(TICKERS)} tickers")
-    logging.info("="*60)
+    logging.info("=" * 60)
     client = finnhub.Client(api_key=API_KEY)
 
     # Initialize empty DataFrames for each data type
@@ -171,10 +173,12 @@ def run():
 
     # Write all DataFrames to BigQuery (only if non-empty)
     # Using if_exists="append" to preserve historical data
-    logging.info("="*60)
+    logging.info("=" * 60)
     logging.info("Loading collected data to BigQuery...")
-    logging.info(f"News records: {len(news)} | Recommendations: {len(recommendation)} | Financials: {len(financials)} | Insider: {len(insider)}")
-    
+    logging.info(
+        f"News records: {len(news)} | Recommendations: {len(recommendation)} | Financials: {len(financials)} | Insider: {len(insider)}"
+    )
+
     if not news.empty:
         news["_ingested_at"] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(
@@ -192,7 +196,9 @@ def run():
             project_id=PROJECT,
             if_exists="append",
         )
-        logging.info(f"✓ Loaded {len(recommendation)} recommendation records to bronze_finnhub_recommendations")
+        logging.info(
+            f"✓ Loaded {len(recommendation)} recommendation records to bronze_finnhub_recommendations"
+        )
     if not financials.empty:
         financials["_ingested_at"] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(
@@ -201,7 +207,9 @@ def run():
             project_id=PROJECT,
             if_exists="append",
         )
-        logging.info(f"✓ Loaded {len(financials)} financial records to bronze_finnhub_financials")
+        logging.info(
+            f"✓ Loaded {len(financials)} financial records to bronze_finnhub_financials"
+        )
     if not insider.empty:
         insider["_ingested_at"] = pd.Timestamp.utcnow()
         pandas_gbq.to_gbq(
@@ -210,11 +218,13 @@ def run():
             project_id=PROJECT,
             if_exists="append",
         )
-        logging.info(f"✓ Loaded {len(insider)} insider records to bronze_finnhub_insider")
+        logging.info(
+            f"✓ Loaded {len(insider)} insider records to bronze_finnhub_insider"
+        )
 
-    logging.info("="*60)
+    logging.info("=" * 60)
     logging.info("✓ Finnhub Ingestion Complete")
-    logging.info("="*60)
+    logging.info("=" * 60)
     return {"status": "success"}, 200
 
 

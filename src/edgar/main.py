@@ -120,11 +120,13 @@ def parse_sec_xml(xml_content):
 
 @app.route("/", methods=["POST"])
 def run_edgar_ingestion():
-    logging.info("="*60)
+    logging.info("=" * 60)
     logging.info("Starting SEC EDGAR Ingestion Pipeline...")
     logging.info(f"Project: {PROJECT}")
-    logging.info(f"Processing {len(TARGET_TICKERS)} standard tickers + {len(WHALE_CIKS)} institutional funds")
-    logging.info("="*60)
+    logging.info(
+        f"Processing {len(TARGET_TICKERS)} standard tickers + {len(WHALE_CIKS)} institutional funds"
+    )
+    logging.info("=" * 60)
 
     # 1. Dynamically fetch the CIKs for your standard tickers
     logging.info("Fetching CIK mappings for standard tickers...")
@@ -141,7 +143,9 @@ def run_edgar_ingestion():
 
     # 3. Proceed with the loop we built earlier!
     for idx, (entity_name, cik) in enumerate(master_targets.items(), start=1):
-        logging.info(f"[{idx}/{len(master_targets)}] Querying SEC EDGAR for {entity_name} (CIK: {cik})...")
+        logging.info(
+            f"[{idx}/{len(master_targets)}] Querying SEC EDGAR for {entity_name} (CIK: {cik})..."
+        )
 
         try:
             # 1. Fetch the raw Submissions JSON
@@ -174,7 +178,9 @@ def run_edgar_ingestion():
                 latest_filing = thirteen_fs.iloc[0]
                 filing_date = latest_filing["filingDate"]
                 accession_no_clean = latest_filing["accessionNumber"].replace("-", "")
-                logging.info(f"  Found 13F-HR filing from {filing_date}. Parsing holdings...")
+                logging.info(
+                    f"  Found 13F-HR filing from {filing_date}. Parsing holdings..."
+                )
 
                 # Download and parse the raw XML
                 xml_url = f"https://www.sec.gov/Archives/edgar/data/{cik.lstrip('0')}/{accession_no_clean}/infotable.xml"
@@ -193,14 +199,16 @@ def run_edgar_ingestion():
             logging.error(f"Failed to process {entity_name}: {e}")
             continue
 
-    logging.info("="*60)
+    logging.info("=" * 60)
     logging.info("Loading data to BigQuery...")
     if master_holdings:
         try:
             # Combine all funds into one massive DataFrame and inject the system timestamp
             final_df = pd.concat(master_holdings, ignore_index=True)
             final_df = final_df.assign(_ingested_at=pd.Timestamp.utcnow())
-            logging.info(f"Total holdings to upload: {len(final_df)} records from {len(master_holdings)} filings")
+            logging.info(
+                f"Total holdings to upload: {len(final_df)} records from {len(master_holdings)} filings"
+            )
 
             pandas_gbq.to_gbq(
                 final_df,
@@ -211,9 +219,9 @@ def run_edgar_ingestion():
             logging.info(
                 f"✓ Successfully loaded {len(final_df)} institutional holdings to BigQuery"
             )
-            logging.info("="*60)
+            logging.info("=" * 60)
             logging.info("✓ SEC EDGAR Ingestion Complete")
-            logging.info("="*60)
+            logging.info("=" * 60)
             return f"Loaded {len(final_df)} records", 200
 
         except Exception as e:

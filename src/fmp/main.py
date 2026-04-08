@@ -63,10 +63,10 @@ def fetch_fmp_data(endpoint, ticker, key, opt_args=""):
 
 @app.route("/", methods=["POST"])
 def run_fmp_ingestion():
-    logging.info("="*60)
+    logging.info("=" * 60)
     logging.info("Starting FMP Fundamental Ingestion...")
     logging.info(f"Processing {len(TARGET_TICKERS)} tickers")
-    logging.info("="*60)
+    logging.info("=" * 60)
 
     income_master = []
     balance_master = []
@@ -75,7 +75,9 @@ def run_fmp_ingestion():
     ownership_master = []
 
     for idx, ticker in enumerate(TARGET_TICKERS, start=1):
-        logging.info(f"[{idx}/{len(TARGET_TICKERS)}] Fetching fundamentals for {ticker}...")
+        logging.info(
+            f"[{idx}/{len(TARGET_TICKERS)}] Fetching fundamentals for {ticker}..."
+        )
 
         # 1. Income Statement
         logging.debug(f"  Fetching income statement for {ticker}")
@@ -109,12 +111,14 @@ def run_fmp_ingestion():
         if pr_data:
             profile_master.extend(pr_data)
             logging.debug(f"  ✓ Found profile for {ticker}")
-        
+
         logging.info(f"✓ Completed {ticker}")
     # Batch Load to BigQuery
-    logging.info("="*60)
+    logging.info("=" * 60)
     logging.info("Loading data to BigQuery...")
-    logging.info(f"Income records: {len(income_master)} | Balance: {len(balance_master)} | Cash Flow: {len(cashflow_master)} | Profile: {len(profile_master)}")
+    logging.info(
+        f"Income records: {len(income_master)} | Balance: {len(balance_master)} | Cash Flow: {len(cashflow_master)} | Profile: {len(profile_master)}"
+    )
     try:
         if income_master:
             df_inc = pd.DataFrame(income_master).assign(
@@ -164,14 +168,14 @@ def run_fmp_ingestion():
             )
             logging.info(f"✓ Loaded {len(df_pr)} rows to bronze_fmp_profile")
 
-        logging.info("="*60)
+        logging.info("=" * 60)
         logging.info("✓ FMP Ingestion Complete")
-        logging.info("="*60)
+        logging.info("=" * 60)
         return "FMP Ingestion Complete", 200
 
     except Exception as e:
         logging.error(f"BigQuery Load Failed: {e}")
-        logging.error("="*60)
+        logging.error("=" * 60)
         return "Database Error", 500
 
 
