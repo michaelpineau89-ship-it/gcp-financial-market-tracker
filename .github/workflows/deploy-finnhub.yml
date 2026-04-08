@@ -1,4 +1,4 @@
-name: Deploy Finnhub Vantage Ingestor
+name: Deploy Finnhub Ingestor
 
 on:
   push:
