@@ -40,7 +40,7 @@ jobs:
         uses: psf/black@stable
         with:
           src: "./src/alphavantage"
-          opions: '--check'
+          options: '--check'
       
       # 3 Static Application Security Testing (Banit)
       - name: Security Scan with bandit
