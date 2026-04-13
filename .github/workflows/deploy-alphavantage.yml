@@ -12,7 +12,7 @@ env:
   PROJECT_ID: 'mike-personal-portfolio'
   REGION: 'us-central1'
   REPO_NAME: 'financial-trackers' # Your Artifact Registry repo
-  SERVICE_NAME: 'alpha-vantage-ingestor'
+  SERVICE_NAME: 'alphavantage-ingestor'
 
 jobs:
   ci-checks:
