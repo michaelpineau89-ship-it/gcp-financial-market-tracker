@@ -62,7 +62,7 @@ def get_data(ticker, key):
 
     data = r.json()
 
-    # Safe extraction in case the API rate-limits us and returns an Error/Information message instead 
+    # Safe extraction in case the API rate-limits us and returns an Error/Information message instead
     return data.get("Global Quote", None)
 
 
