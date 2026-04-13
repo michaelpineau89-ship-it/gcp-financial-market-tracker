@@ -230,4 +230,7 @@ def run():
     return {"status": "success"}, 200
 
 
-# Entry point - starts the Flask development server\nif __name__ == \"__main__\":\n    logging.info(f\"🚀 Starting Finnhub Data Ingestion Service on port {PORT}\")\n    app.run(\"0.0.0.0\", int(PORT))
+# Entry point - starts the Flask development server
+if __name__ == "__main__":
+    logging.info(f"Starting Finnhub Data Ingestion Service on port {PORT}")
+    app.run("0.0.0.0", int(PORT))
