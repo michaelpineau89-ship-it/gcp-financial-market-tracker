@@ -60,7 +60,7 @@ def get_ticker_cik_mapping(target_tickers, headers):
     """
     url = "https://www.sec.gov/files/company_tickers.json"
 
-    logging.info("Fetching SEC Ticker-to-CIK master list...")
+    logging.info("Fetching SEC Ticker-to-CIK master list....")
     r = requests.get(url, headers=headers)
     r.raise_for_status()
 

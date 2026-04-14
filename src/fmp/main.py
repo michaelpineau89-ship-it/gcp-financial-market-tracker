@@ -66,7 +66,7 @@ def fetch_fmp_data(endpoint, ticker, key, opt_args=""):
 @app.route("/", methods=["POST"])
 def run_fmp_ingestion():
     logging.info("=" * 60)
-    logging.info("Starting FMP Fundamental Ingestion...")
+    logging.info("Starting FMP Fundamental Ingestion....")
     logging.info(f"Processing {len(TARGET_TICKERS)} tickers")
     logging.info("=" * 60)
 
