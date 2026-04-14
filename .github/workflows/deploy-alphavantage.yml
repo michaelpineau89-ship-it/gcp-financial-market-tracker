@@ -109,4 +109,4 @@ jobs:
           # 2. Secure API Keys from Secret Manager
           # Format: ENV_VAR_NAME=secret-name-in-gcp:version
           secrets: |
-            ALPHAVANTAGE_API_KEY=alphavantage-api-key:latest
+            ALPHAVANTAGE_API_KEY=alphavantage_api_key:latest
