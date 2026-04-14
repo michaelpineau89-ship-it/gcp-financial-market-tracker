@@ -109,4 +109,4 @@ jobs:
           # 2. Secure API Keys from Secret Manager
           # Format: ENV_VAR_NAME=secret-name-in-gcp:version
           secrets: |
-            FINNHUB_API_KEY=finnhub_api_key:latest
+            API_KEY=finnhub_api_key:latest
