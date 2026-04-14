@@ -102,3 +102,11 @@ jobs:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
           image: ${{ env.DOCKER_TAG }}
+
+          env_vars: |
+            PROJECT_ID=mike-personal-portfolio
+            
+          # 2. Secure API Keys from Secret Manager
+          # Format: ENV_VAR_NAME=secret-name-in-gcp:version
+          secrets: |
+            FINNHUB_API_KEY=finnhub-api-key:latest
