@@ -100,5 +100,12 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE_NAME }}
-          region: ${{ env.REGION }}
+          region: ${{ env.REGION }}q
           image: ${{ env.DOCKER_TAG }}
+          env_vars: |
+            PROJECT_ID=mike-personal-portfolio
+            
+          # 2. Secure API Keys from Secret Manager
+          # Format: ENV_VAR_NAME=secret-name-in-gcp:version
+          secrets: |
+            FMP_API_KEY=fmp-api-key:latest
