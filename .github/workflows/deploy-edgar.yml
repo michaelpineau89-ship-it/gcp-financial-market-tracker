@@ -104,8 +104,3 @@ jobs:
           image: ${{ env.DOCKER_TAG }}
           env_vars: |
             PROJECT_ID=mike-personal-portfolio
-            
-          # 2. Secure API Keys from Secret Manager
-          # Format: ENV_VAR_NAME=secret-name-in-gcp:version
-          secrets: |
-            API_KEY=edgar_api_key:latest
