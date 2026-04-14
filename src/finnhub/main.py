@@ -68,7 +68,7 @@ TARGET_TICKERS = [
 
 # Log initialization
 logging.info("=" * 60)
-logging.info("Finnhub Data Ingestion Service Initialized")
+logging.info("Finnhub Data Ingestion Service Initialized.")
 logging.info(f"Project: {PROJECT} | API Key configured: {bool(API_KEY)}")
 logging.info(f"Date range: {DATE_START} to {DATE_END}")
 logging.info(
