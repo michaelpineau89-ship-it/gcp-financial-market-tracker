@@ -8,7 +8,6 @@ Environment Variables:
     API_KEY: Finnhub API key
     START: Start date (YYYY-MM-DD)
     END: End date (YYYY-MM-DD)
-    TICKERS: Comma-separated list of stock tickers
     PORT: Flask server port (default: 8080)
     PROJECT: GCP project ID (default: mike-personal-portfolio)
 """
@@ -33,14 +32,39 @@ logging.basicConfig(
 
 # Configuration - loaded from environment variables
 API_KEY = os.environ.get("API_KEY")  # Finnhub API authentication key
-DATE_START = os.environ.get("START")  # Start date for data retrieval (YYYY-MM-DD)
-DATE_END = os.environ.get("END")  # End date for data retrieval (YYYY-MM-DD)
-TICKERS_STR = os.environ.get("TICKERS", "")  # Comma-separated ticker symbols
 PORT = os.environ.get("PORT", "8080")  # Flask server port
 PROJECT = os.environ.get("PROJECT", "mike-personal-portfolio")  # GCP BigQuery project
 
+DATE_START = datetime.date.today() - datetime.timedelta(days=14)
+DATE_END = datetime.date.today()
 # Parse ticker string into a list, filtering empty entries
-TICKERS = [t.strip() for t in TICKERS_STR.split(",") if t.strip()]
+TARGET_TICKERS = [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "NVDA",
+    "AMD",
+    "AVGO",
+    "PLTR",
+    "JPM",
+    "BRK-B",
+    "BNS",
+    "BMO",
+    "RY",
+    "HOOD",
+    "TSLA",
+    "TM",
+    "GM",
+    "JNJ",
+    "LLY",
+    "GEN",
+    "BTC-USD",
+    "ETH-USD",
+    "SPY",
+    "QQQ",
+]
+
 
 # Log initialization
 logging.info("=" * 60)
@@ -48,7 +72,7 @@ logging.info("Finnhub Data Ingestion Service Initialized")
 logging.info(f"Project: {PROJECT} | API Key configured: {bool(API_KEY)}")
 logging.info(f"Date range: {DATE_START} to {DATE_END}")
 logging.info(
-    f"Monitoring {len(TICKERS)} tickers: {', '.join(TICKERS[:5])}{'...' if len(TICKERS) > 5 else ''}"
+    f"Monitoring {len(TARGET_TICKERS)} tickers: {', '.join(TARGET_TICKERS[:5])}{'...' if len(TARGET_TICKERS) > 5 else ''}"
 )
 logging.info(f"Server port: {PORT}")
 logging.info("=" * 60)
@@ -116,7 +140,7 @@ def run():
     """
     logging.info("=" * 60)
     logging.info("Starting Finnhub Ingestion Batch")
-    logging.info(f"Processing {len(TICKERS)} tickers")
+    logging.info(f"Processing {len(TARGET_TICKERS)} tickers")
     logging.info("=" * 60)
     client = finnhub.Client(api_key=API_KEY)
 
@@ -127,8 +151,8 @@ def run():
     insider = pd.DataFrame()
 
     # Iterate through each ticker symbol
-    for idx, ticker in enumerate(TICKERS, start=1):
-        logging.info(f"[{idx}/{len(TICKERS)}] Processing {ticker}...")
+    for idx, ticker in enumerate(TARGET_TICKERS, start=1):
+        logging.info(f"[{idx}/{len(TARGET_TICKERS)}] Processing {ticker}...")
         try:
             # 1. NEWS: Company news from Finnhub
             # Returns a list of news items - manually inject symbol for BigQuery identification
