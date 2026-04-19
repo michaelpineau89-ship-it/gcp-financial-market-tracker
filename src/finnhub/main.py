@@ -1,14 +1,11 @@
 """
 Finnhub Data Ingestion Service
 
-Fetches market data from Finnhub API and stores it in Google BigQuery.
+Cloud Functions entry point for fetching market data from Finnhub API and storing it in Google BigQuery.
 Supports: company news, recommendation trends, basic financials, and insider sentiment.
 
 Environment Variables:
-    API_KEY: Finnhub API key
-    START: Start date (YYYY-MM-DD)
-    END: End date (YYYY-MM-DD)
-    PORT: Flask server port (default: 8080)
+    API_KEY: Finnhub API key (loaded from Secret Manager)
     PROJECT: GCP project ID (default: mike-personal-portfolio)
 """
 
@@ -16,28 +13,31 @@ import finnhub
 import os
 import pandas as pd
 import datetime
-from flask import Flask
-
-# CICD Test: v1.0.1
-
 import logging
+import functions_framework
+import base64
+import json
 from time import sleep
 import pandas_gbq
-
-app = Flask(__name__)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+# CICD Test: v2.0.0 (Cloud Functions)
+
 # Configuration - loaded from environment variables
-API_KEY = os.environ.get("API_KEY")  # Finnhub API authentication key
-PORT = os.environ.get("PORT", "8080")  # Flask server port
-PROJECT = os.environ.get("PROJECT", "mike-personal-portfolio")  # GCP BigQuery project
+API_KEY = os.environ.get("API_KEY")
+PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
+
+# Fail fast if API_KEY is missing
+if not API_KEY:
+    logging.error("FATAL: API_KEY environment variable not set from Secret Manager")
+    raise RuntimeError("API_KEY must be configured in Secret Manager and mapped to env var")
 
 DATE_START = datetime.date.today() - datetime.timedelta(days=14)
 DATE_END = datetime.date.today()
-# Parse ticker string into a list, filtering empty entries
+
 TARGET_TICKERS = [
     "AAPL",
     "MSFT",
@@ -65,16 +65,14 @@ TARGET_TICKERS = [
     "QQQ",
 ]
 
-
 # Log initialization
 logging.info("=" * 60)
-logging.info("Finnhub Data Ingestion Service Initialized.")
+logging.info("Finnhub Data Ingestion Service Initialized (Cloud Functions)")
 logging.info(f"Project: {PROJECT} | API Key configured: {bool(API_KEY)}")
 logging.info(f"Date range: {DATE_START} to {DATE_END}")
 logging.info(
     f"Monitoring {len(TARGET_TICKERS)} tickers: {', '.join(TARGET_TICKERS[:5])}{'...' if len(TARGET_TICKERS) > 5 else ''}"
 )
-logging.info(f"Server port: {PORT}")
 logging.info("=" * 60)
 
 
@@ -124,10 +122,9 @@ def make_api_call(client, method, *args, max_retries=3, **kwargs):
     return None
 
 
-@app.route("/", methods=["POST"])
-def run():
+def run_finnhub_ingestion_impl():
     """
-    Main entry point for the Flask app - fetches and stores Finnhub data.
+    Core ingestion logic for fetching and storing Finnhub data.
 
     Makes API calls for each ticker and stores results in BigQuery:
     - Company news (bronze_finnhub_news)
@@ -136,7 +133,7 @@ def run():
     - Insider sentiment (bronze_finnhub_insider)
 
     Returns:
-        JSON response with status "success" on completion
+        dict: Status response with code for Cloud Functions or Flask
     """
     logging.info("=" * 60)
     logging.info("Starting Finnhub Ingestion Batch")
@@ -205,56 +202,84 @@ def run():
         f"News records: {len(news)} | Recommendations: {len(recommendation)} | Financials: {len(financials)} | Insider: {len(insider)}"
     )
 
-    if not news.empty:
-        news["_ingested_at"] = pd.Timestamp.utcnow()
-        pandas_gbq.to_gbq(
-            news,
-            "market_tracker.bronze_finnhub_news",
-            project_id=PROJECT,
-            if_exists="append",
-        )
-        logging.info(f"✓ Loaded {len(news)} news records to bronze_finnhub_news")
-    if not recommendation.empty:
-        recommendation["_ingested_at"] = pd.Timestamp.utcnow()
-        pandas_gbq.to_gbq(
-            recommendation,
-            "market_tracker.bronze_finnhub_recommendations",
-            project_id=PROJECT,
-            if_exists="append",
-        )
-        logging.info(
-            f"✓ Loaded {len(recommendation)} recommendation records to bronze_finnhub_recommendations"
-        )
-    if not financials.empty:
-        financials["_ingested_at"] = pd.Timestamp.utcnow()
-        pandas_gbq.to_gbq(
-            financials,
-            "market_tracker.bronze_finnhub_financials",
-            project_id=PROJECT,
-            if_exists="append",
-        )
-        logging.info(
-            f"✓ Loaded {len(financials)} financial records to bronze_finnhub_financials"
-        )
-    if not insider.empty:
-        insider["_ingested_at"] = pd.Timestamp.utcnow()
-        pandas_gbq.to_gbq(
-            insider,
-            "market_tracker.bronze_finnhub_insider",
-            project_id=PROJECT,
-            if_exists="append",
-        )
-        logging.info(
-            f"✓ Loaded {len(insider)} insider records to bronze_finnhub_insider"
-        )
+    try:
+        if not news.empty:
+            news["_ingested_at"] = pd.Timestamp.utcnow()
+            pandas_gbq.to_gbq(
+                news,
+                "market_tracker.bronze_finnhub_news",
+                project_id=PROJECT,
+                if_exists="append",
+            )
+            logging.info(f"✓ Loaded {len(news)} news records to bronze_finnhub_news")
+        if not recommendation.empty:
+            recommendation["_ingested_at"] = pd.Timestamp.utcnow()
+            pandas_gbq.to_gbq(
+                recommendation,
+                "market_tracker.bronze_finnhub_recommendations",
+                project_id=PROJECT,
+                if_exists="append",
+            )
+            logging.info(
+                f"✓ Loaded {len(recommendation)} recommendation records to bronze_finnhub_recommendations"
+            )
+        if not financials.empty:
+            financials["_ingested_at"] = pd.Timestamp.utcnow()
+            pandas_gbq.to_gbq(
+                financials,
+                "market_tracker.bronze_finnhub_financials",
+                project_id=PROJECT,
+                if_exists="append",
+            )
+            logging.info(
+                f"✓ Loaded {len(financials)} financial records to bronze_finnhub_financials"
+            )
+        if not insider.empty:
+            insider["_ingested_at"] = pd.Timestamp.utcnow()
+            pandas_gbq.to_gbq(
+                insider,
+                "market_tracker.bronze_finnhub_insider",
+                project_id=PROJECT,
+                if_exists="append",
+            )
+            logging.info(
+                f"✓ Loaded {len(insider)} insider records to bronze_finnhub_insider"
+            )
 
-    logging.info("=" * 60)
-    logging.info("✓ Finnhub Ingestion Complete")
-    logging.info("=" * 60)
-    return {"status": "success"}, 200
+        logging.info("=" * 60)
+        logging.info("✓ Finnhub Ingestion Complete")
+        logging.info("=" * 60)
+        return {"status": "success", "code": 200, "message": "Finnhub ingestion complete"}
+
+    except Exception as e:
+        logging.error(f"BigQuery Load Failed: {e}")
+        logging.error("=" * 60)
+        return {"status": "error", "message": str(e), "code": 500}
 
 
-# Entry point - starts the Flask development server
-if __name__ == "__main__":
-    logging.info(f"Starting Finnhub Data Ingestion Service on port {PORT}")
-    app.run("0.0.0.0", int(PORT))
+# Cloud Functions entry point (Pub/Sub triggered)
+@functions_framework.cloud_event
+def run_finnhub_ingestion(cloud_event):
+    """
+    Cloud Functions entry point triggered by Pub/Sub.
+    When a message is published to the topic, this function is invoked.
+    """
+    logging.info("Cloud Event received from Pub/Sub")
+
+    try:
+        # Parse the Pub/Sub message (optional - useful for debugging)
+        if cloud_event.data:
+            pubsub_message = cloud_event.data
+            if isinstance(pubsub_message, dict) and "message" in pubsub_message:
+                message_data = pubsub_message["message"].get("data")
+                if message_data:
+                    decoded_message = base64.b64decode(message_data).decode()
+                    logging.info(f"Pub/Sub message: {decoded_message}")
+
+        result = run_finnhub_ingestion_impl()
+        logging.info(f"Result: {result}")
+        return result
+
+    except Exception as e:
+        logging.error(f"Unexpected error in Cloud Function: {e}")
+        return {"status": "error", "message": str(e), "code": 500}
