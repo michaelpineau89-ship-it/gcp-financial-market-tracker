@@ -49,9 +49,8 @@ jobs:
 
       - name: Install Dependencies and Run Tests
         run: |
-          pip install -r src/fmp/requirements.txt
-          # Add pytest or unit tests here if available
-          # pytest src/fmp/tests/
+          pip install -r src/fmp/requirements-test.txt
+          pytest src/fmp/tests/ -v --cov=src/fmp --cov-report=term-missing --cov-fail-under=70
 
 
   deploy:
