@@ -68,7 +68,7 @@ def fetch_fmp_data(endpoint, ticker, key, opt_args=""):
 
 
 def run_fmp_ingestion_impl():
-    """Core ingestion logic for Cloud Functions"""
+    """Core ingestion logic (shared between Flask and Cloud Functions)"""
     logging.info("=" * 60)
     logging.info("Starting FMP Fundamental Ingestion...")
     logging.info(f"Processing {len(TARGET_TICKERS)} tickers")
@@ -111,6 +111,7 @@ def run_fmp_ingestion_impl():
             cashflow_master.extend(cf_data)
             logging.debug(f"  ✓ Found {len(cf_data)} cash flow records")
 
+        # 4. Company Profile
         logging.debug(f"  Fetching company profile for {ticker}")
         pr_data = fetch_fmp_data("profile", ticker, API_KEY)
         if pr_data:
@@ -118,12 +119,14 @@ def run_fmp_ingestion_impl():
             logging.debug(f"  ✓ Found profile for {ticker}")
 
         logging.info(f"✓ Completed {ticker}")
+
     # Batch Load to BigQuery
     logging.info("=" * 60)
     logging.info("Loading data to BigQuery...")
     logging.info(
         f"Income records: {len(income_master)} | Balance: {len(balance_master)} | Cash Flow: {len(cashflow_master)} | Profile: {len(profile_master)}"
     )
+
     try:
         if income_master:
             df_inc = pd.DataFrame(income_master).assign(
@@ -195,12 +198,11 @@ def run_fmp_ingestion(cloud_event):
     """
     Cloud Functions entry point triggered by Pub/Sub.
     When a message is published to the topic, this function is invoked.
-    Pub/Sub message data is automatically decoded and passed to the function.
     """
     logging.info("Cloud Event received from Pub/Sub")
 
     try:
-        # Parse the Pub/Sub message (optional - useful for debugging)
+        # Parse the Pub/Sub message (optional)
         if cloud_event.data:
             pubsub_message = cloud_event.data
             if isinstance(pubsub_message, dict) and "message" in pubsub_message:
