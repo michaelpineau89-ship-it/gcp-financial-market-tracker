@@ -1,20 +1,20 @@
-name: Deploy Finnhub Ingestor (Cloud Functions)
+name: Deploy Alpha Vantage Ingestor (Cloud Functions)
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'src/finnhub/**'
+      - 'src/alphavantage/**'
 
 env:
   PROJECT_ID: 'mike-personal-portfolio'
   REGION: 'us-central1'
-  FUNCTION_NAME: 'finnhub-ingestor'
+  FUNCTION_NAME: 'alphavantage-ingestor'
   RUNTIME: 'python311'
-  TIMEOUT: '540'  # 9 minutes for full pipeline
+  TIMEOUT: '600'  # 10 minutes for rate-limited API calls
   MEMORY: '1024MB'
-  PUBSUB_TOPIC: 'finnhub-ingestion-trigger'
+  PUBSUB_TOPIC: 'alphavantage-ingestion-trigger'
 
 jobs:
   ci-checks:
@@ -39,18 +39,18 @@ jobs:
       - name: Check Formatting with Black
         uses: psf/black@stable
         with:
-          src: "./src/finnhub"
+          src: "./src/alphavantage"
           options: '--check'
 
       - name: Security Scan with bandit
         run: |
           pip install bandit
-          bandit -r ./src/finnhub -lll
+          bandit -r ./src/alphavantage -lll
 
       - name: Install Dependencies and Run Tests
         run: |
-          pip install -r src/finnhub/requirements.txt -r src/finnhub/requirements-test.txt
-          pytest src/finnhub/tests/ -v --cov=src/finnhub --cov-report=term-missing --cov-fail-under=70
+          pip install -r src/alphavantage/requirements.txt -r src/alphavantage/requirements-test.txt
+          pytest src/alphavantage/tests/ -v --cov=src/alphavantage --cov-report=term-missing --cov-fail-under=70
 
 
   deploy:
@@ -80,15 +80,15 @@ jobs:
             --gen2 \
             --runtime=${{ env.RUNTIME }} \
             --region=${{ env.REGION }} \
-            --source=src/finnhub \
-            --entry-point=run_finnhub_ingestion \
+            --source=src/alphavantage \
+            --entry-point=run_alphavantage_ingestion \
             --trigger-topic=${{ env.PUBSUB_TOPIC }} \
             --timeout=${{ env.TIMEOUT }} \
             --memory=${{ env.MEMORY }} \
             --project=${{ env.PROJECT_ID }} \
             --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }} \
             --set-env-vars LOG_LEVEL=INFO \
-            --set-secrets API_KEY=finnhub_api_key:latest \
+            --set-secrets API_KEY=alphavantage_api_key:latest \
             --allow-unauthenticated=false
 
       # Verify deployment
