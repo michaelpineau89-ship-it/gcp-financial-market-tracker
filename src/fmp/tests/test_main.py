@@ -10,6 +10,7 @@ os.environ["API_KEY"] = "test_api_key"
 os.environ["PROJECT_ID"] = "test-project"
 
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from main import fetch_fmp_data, run_fmp_ingestion_impl, run_fmp_ingestion

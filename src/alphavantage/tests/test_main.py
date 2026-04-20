@@ -10,6 +10,7 @@ os.environ["API_KEY"] = "test_api_key"
 os.environ["PROJECT_ID"] = "test-project"
 
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from main import (
@@ -50,9 +51,7 @@ class TestGetData:
         """Test API call that returns no Global Quote"""
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "Error Message": "Invalid API call"
-        }
+        mock_response.json.return_value = {"Error Message": "Invalid API call"}
         mock_get.return_value = mock_response
 
         result = get_data("INVALID", "test_key")
@@ -164,7 +163,9 @@ class TestRunAlphaVantageIngestionImpl:
         }
 
         # Patch DataFrame.to_gbq to fail
-        with patch.object(pd.DataFrame, "to_gbq", side_effect=Exception("BigQuery error")):
+        with patch.object(
+            pd.DataFrame, "to_gbq", side_effect=Exception("BigQuery error")
+        ):
             result = run_alphavantage_ingestion_impl()
 
         assert result["status"] == "error"

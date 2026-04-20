@@ -87,13 +87,13 @@ def get_latest_13f_url(cik):
     data = r.json()
 
     recent_filings = data.get("filings", {}).get("recent", {})
-    
+
     if not recent_filings:
         return None
 
     # Zip the separate arrays into a single list of dictionaries
     filings_df = pd.DataFrame(recent_filings)
-    
+
     if filings_df.empty or "form" not in filings_df.columns:
         return None
 
@@ -232,7 +232,7 @@ def run_edgar_ingestion_impl():
 @functions_framework.cloud_event
 def run_edgar_ingestion(cloud_event: CloudEvent) -> dict:
     """Cloud Functions entry point for SEC EDGAR ingestion.
-    
+
     Triggered by Pub/Sub event with optional message payload.
     """
     logging.info("=" * 60)
@@ -242,7 +242,7 @@ def run_edgar_ingestion(cloud_event: CloudEvent) -> dict:
         f"Processing {len(TARGET_TICKERS)} standard tickers + {len(WHALE_CIKS)} institutional funds"
     )
     logging.info("=" * 60)
-    
+
     try:
         result = run_edgar_ingestion_impl()
         return result

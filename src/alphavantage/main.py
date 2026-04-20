@@ -48,7 +48,9 @@ API_KEY = os.environ.get("API_KEY")
 # Fail fast if API_KEY is missing
 if not API_KEY:
     logger.error("FATAL: API_KEY environment variable not set from Secret Manager")
-    raise RuntimeError("API_KEY must be configured in Secret Manager and mapped to env var")
+    raise RuntimeError(
+        "API_KEY must be configured in Secret Manager and mapped to env var"
+    )
 
 logger.info(f"Initialized Alpha Vantage (Cloud Functions) | Project: {PROJECT_ID}")
 logger.info(f"API Key configured: {bool(API_KEY)}")
@@ -59,7 +61,7 @@ def get_data(ticker, key):
     url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={key}"
     try:
         r = requests.get(url, timeout=10)
-        
+
         if r.status_code == 200:
             logging.debug(f"Query Success | Ticker: {ticker} | Response: 200")
         else:
@@ -100,7 +102,7 @@ def run_alphavantage_ingestion_impl():
 
     logging.info("=" * 60)
     logging.info("Loading Data to BigQuery...")
-    
+
     try:
         # Batch Load to BigQuery
         if master_data_list:
@@ -111,7 +113,9 @@ def run_alphavantage_ingestion_impl():
             # Clean the Alpha Vantage keys (they look like "01. symbol", which BigQuery hates)
             clean_data = []
             for row in master_data_list:
-                clean_row = {k.split(". ")[1].replace(" ", "_"): v for k, v in row.items()}
+                clean_row = {
+                    k.split(". ")[1].replace(" ", "_"): v for k, v in row.items()
+                }
                 clean_data.append(clean_row)
 
             df = pd.DataFrame(clean_data)
@@ -129,7 +133,7 @@ def run_alphavantage_ingestion_impl():
             logging.info("=" * 60)
             logging.info("✓ Alpha Vantage Ingestion Complete")
             logging.info("=" * 60)
-            
+
             return {
                 "status": "success",
                 "message": f"Loaded {len(df)} records",
