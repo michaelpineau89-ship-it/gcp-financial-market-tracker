@@ -53,7 +53,7 @@ if not API_KEY:
     )
 
 logger.info(f"Initialized Alpha Vantage (Cloud Functions) | Project: {PROJECT_ID}")
-logger.info(f"API Key configured: {bool(API_KEY)}.")
+logger.info(f"API Key configured: {bool(API_KEY)}")
 
 
 def get_data(ticker, key):
