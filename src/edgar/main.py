@@ -3,17 +3,16 @@ import requests
 import pandas as pd
 import io
 import re
-from flask import Flask
 import logging
 import pandas_gbq
+import functions_framework
+from cloudevents.http import CloudEvent
 
-app = Flask(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
-PORT = int(os.environ.get("PORT", 8080))
 
 # CICD Test: v1.0.1
 
@@ -88,9 +87,15 @@ def get_latest_13f_url(cik):
     data = r.json()
 
     recent_filings = data.get("filings", {}).get("recent", {})
+    
+    if not recent_filings:
+        return None
 
     # Zip the separate arrays into a single list of dictionaries
     filings_df = pd.DataFrame(recent_filings)
+    
+    if filings_df.empty or "form" not in filings_df.columns:
+        return None
 
     # Filter for the newest 13F-HR (Holdings Report)
     thirteen_fs = filings_df[filings_df["form"] == "13F-HR"]
@@ -120,15 +125,7 @@ def parse_sec_xml(xml_content):
     return df
 
 
-@app.route("/", methods=["POST"])
-def run_edgar_ingestion():
-    logging.info("=" * 60)
-    logging.info("Starting SEC EDGAR Ingestion Pipeline...")
-    logging.info(f"Project: {PROJECT}")
-    logging.info(
-        f"Processing {len(TARGET_TICKERS)} standard tickers + {len(WHALE_CIKS)} institutional funds"
-    )
-    logging.info("=" * 60)
+def run_edgar_ingestion_impl():
 
     # 1. Dynamically fetch the CIKs for your standard tickers
     logging.info("Fetching CIK mappings for standard tickers...")
@@ -224,15 +221,31 @@ def run_edgar_ingestion():
             logging.info("=" * 60)
             logging.info("✓ SEC EDGAR Ingestion Complete")
             logging.info("=" * 60)
-            return f"Loaded {len(final_df)} records", 200
-
+            return {"code": 200, "message": f"Loaded {len(final_df)} records"}
         except Exception as e:
             logging.error(f"BigQuery Load Failed: {e}")
-            return "Database Error", 500
+            return {"code": 500, "message": f"Database Error: {e}"}
     else:
-        return "No filings processed", 500
+        return {"code": 500, "message": "No filings processed"}
 
 
-if __name__ == "__main__":
-    logging.info(f"🚀 Starting SEC EDGAR Ingestion Service on port {PORT}")
-    app.run(host="0.0.0.0", port=PORT)
+@functions_framework.cloud_event
+def run_edgar_ingestion(cloud_event: CloudEvent) -> dict:
+    """Cloud Functions entry point for SEC EDGAR ingestion.
+    
+    Triggered by Pub/Sub event with optional message payload.
+    """
+    logging.info("=" * 60)
+    logging.info("Starting SEC EDGAR Ingestion Pipeline (Cloud Functions)...")
+    logging.info(f"Project: {PROJECT}")
+    logging.info(
+        f"Processing {len(TARGET_TICKERS)} standard tickers + {len(WHALE_CIKS)} institutional funds"
+    )
+    logging.info("=" * 60)
+    
+    try:
+        result = run_edgar_ingestion_impl()
+        return result
+    except Exception as e:
+        logging.error(f"Cloud Functions handler error: {e}")
+        return {"code": 500, "message": f"Error: {e}"}
