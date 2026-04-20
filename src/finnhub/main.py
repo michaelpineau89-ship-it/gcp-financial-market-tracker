@@ -24,7 +24,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# CICD Test: v3.0.0 (Cloud Functions)
+# CICD Test: v3.0.1 (Cloud Functions)
 
 # Configuration - loaded from environment variables
 API_KEY = os.environ.get("API_KEY")

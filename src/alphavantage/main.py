@@ -13,7 +13,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# CICD Test: v2.0.0 (Cloud Functions)
+# CICD Test: v3.0.0 (Cloud Functions)
 
 TARGET_TICKERS = [
     "AAPL",

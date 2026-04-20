@@ -14,7 +14,7 @@ env:
   RUNTIME: 'python311'
   TIMEOUT: '540'  # 9 minutes (max for event-triggered functions)
   MEMORY: '1024MB'
-  PUBSUB_TOPIC: 'edgar-ingestion-trigger'
+  PUBSUB_TOPIC: 'projects/mike-personal-portfolio/topics/daily-market-ingestion-trigger'
 
 jobs:
   ci-checks:
