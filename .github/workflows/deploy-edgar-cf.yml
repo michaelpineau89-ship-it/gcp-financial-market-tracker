@@ -85,7 +85,7 @@ jobs:
             --timeout=${{ env.TIMEOUT }} \
             --memory=${{ env.MEMORY }} \
             --project=${{ env.PROJECT_ID }} \
-            --set-secrets API_KEY=edgar-api-key:latest \
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }} \
             --quiet
 
       - name: Verify Deployment
