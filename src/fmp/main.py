@@ -20,7 +20,9 @@ PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
 # Fail fast if API_KEY is missing
 if not API_KEY:
     logger.error("FATAL: API_KEY environment variable not set from Secret Manager")
-    raise RuntimeError("API_KEY must be configured in Secret Manager and mapped to env var")
+    raise RuntimeError(
+        "API_KEY must be configured in Secret Manager and mapped to env var"
+    )
 
 logger.info(f"Initialized FMP Ingestion | Project: {PROJECT}")
 logger.info(f"API Key configured: {bool(API_KEY)}")

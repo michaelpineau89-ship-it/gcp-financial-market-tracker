@@ -33,7 +33,9 @@ PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
 # Fail fast if API_KEY is missing
 if not API_KEY:
     logging.error("FATAL: API_KEY environment variable not set from Secret Manager")
-    raise RuntimeError("API_KEY must be configured in Secret Manager and mapped to env var")
+    raise RuntimeError(
+        "API_KEY must be configured in Secret Manager and mapped to env var"
+    )
 
 DATE_START = datetime.date.today() - datetime.timedelta(days=14)
 DATE_END = datetime.date.today()
@@ -249,7 +251,11 @@ def run_finnhub_ingestion_impl():
         logging.info("=" * 60)
         logging.info("✓ Finnhub Ingestion Complete")
         logging.info("=" * 60)
-        return {"status": "success", "code": 200, "message": "Finnhub ingestion complete"}
+        return {
+            "status": "success",
+            "code": 200,
+            "message": "Finnhub ingestion complete",
+        }
 
     except Exception as e:
         logging.error(f"BigQuery Load Failed: {e}")

@@ -10,6 +10,7 @@ os.environ["API_KEY"] = "test_api_key"
 os.environ["PROJECT_ID"] = "test-project"
 
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from main import (
@@ -50,7 +51,9 @@ class TestMakeApiCall:
         ]
 
         # Patch the exception class to raise our mock
-        with patch.object(mock_method, "side_effect", [mock_exception, {"data": "success"}]):
+        with patch.object(
+            mock_method, "side_effect", [mock_exception, {"data": "success"}]
+        ):
             # Just test with a simpler approach
             result = make_api_call(
                 mock_client, lambda: {"data": "success"}, max_retries=1
@@ -85,9 +88,7 @@ class TestRunFinnhubIngestionImpl:
         mock_client.company_news.return_value = [
             {"headline": "Test News", "datetime": 1234567890}
         ]
-        mock_client.recommendation_trends.return_value = [
-            {"symbol": "AAPL", "buy": 10}
-        ]
+        mock_client.recommendation_trends.return_value = [{"symbol": "AAPL", "buy": 10}]
         mock_client.company_basic_financials.return_value = {
             "symbol": "AAPL",
             "metric": {"eps": 5.0},
@@ -150,9 +151,7 @@ class TestRunFinnhubIngestionImpl:
 
     @patch("main.pandas_gbq.to_gbq")
     @patch("main.finnhub.Client")
-    def test_run_finnhub_ingestion_impl_partial_data(
-        self, mock_client_class, mock_gbq
-    ):
+    def test_run_finnhub_ingestion_impl_partial_data(self, mock_client_class, mock_gbq):
         """Test ingestion with some tickers having data and others not"""
         mock_client = Mock()
         mock_client_class.return_value = mock_client
