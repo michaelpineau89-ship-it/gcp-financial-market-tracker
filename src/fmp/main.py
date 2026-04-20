@@ -25,7 +25,7 @@ if not API_KEY:
     )
 
 logger.info(f"Initialized FMP Ingestion | Project: {PROJECT}")
-logger.info(f"API Key configured: {bool(API_KEY)}.")
+logger.info(f"API Key configured: {bool(API_KEY)}")
 
 TARGET_TICKERS = [
     "AAPL",
