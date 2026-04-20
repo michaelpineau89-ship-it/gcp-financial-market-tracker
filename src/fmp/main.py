@@ -12,7 +12,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# CICD Test: v3.0.1 (Cloud Functions)
+# CICD Test: v3.0.2 (Cloud Functions)
 
 API_KEY = os.environ.get("API_KEY")
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
