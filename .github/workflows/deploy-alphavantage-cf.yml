@@ -12,7 +12,7 @@ env:
   REGION: 'us-central1'
   FUNCTION_NAME: 'alphavantage-ingestor'
   RUNTIME: 'python311'
-  TIMEOUT: '600'  # 10 minutes for rate-limited API calls
+  TIMEOUT: '540'  # 9 minutes (max for event-triggered functions)
   MEMORY: '1024MB'
   PUBSUB_TOPIC: 'alphavantage-ingestion-trigger'
 
