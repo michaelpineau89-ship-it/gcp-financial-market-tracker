@@ -1,24 +1,28 @@
 import os
 import requests
 import pandas as pd
-from flask import Flask
 import logging
 import pandas_gbq
+import base64
+import functions_framework
 
-app = Flask(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
 
-# CICD Test: v1.0.1
+# CICD Test: v2.0.0 (Cloud Functions)
 
-API_KEY = os.environ.get("API_KEY")  # Make sure to set this locally!
+API_KEY = os.environ.get("API_KEY")
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
-PORT = int(os.environ.get("PORT", 8080))
 
-logger.info(f"Initialized FMP with Project: {PROJECT}")
+# Fail fast if API_KEY is missing
+if not API_KEY:
+    logger.error("FATAL: API_KEY environment variable not set from Secret Manager")
+    raise RuntimeError("API_KEY must be configured in Secret Manager and mapped to env var")
+
+logger.info(f"Initialized FMP Ingestion | Project: {PROJECT}")
 logger.info(f"API Key configured: {bool(API_KEY)}")
 
 TARGET_TICKERS = [
@@ -53,8 +57,8 @@ def fetch_fmp_data(endpoint, ticker, key, opt_args=""):
     """Generic fetcher for FMP endpoints"""
     url = f"https://financialmodelingprep.com/stable/{endpoint}?symbol={ticker}{opt_args}&apikey={key}"
     try:
-        r = requests.get(url)
-        r.raise_for_status()  # Catches 401s and 500s
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
         data = r.json()
         # FMP returns an empty list [] if the ticker is invalid or unsupported (like crypto)
         return data if isinstance(data, list) and len(data) > 0 else None
@@ -63,10 +67,10 @@ def fetch_fmp_data(endpoint, ticker, key, opt_args=""):
         return None
 
 
-@app.route("/", methods=["POST"])
-def run_fmp_ingestion():
+def run_fmp_ingestion_impl():
+    """Core ingestion logic for Cloud Functions"""
     logging.info("=" * 60)
-    logging.info("Starting FMP Fundamental Ingestion....")
+    logging.info("Starting FMP Fundamental Ingestion...")
     logging.info(f"Processing {len(TARGET_TICKERS)} tickers")
     logging.info("=" * 60)
 
@@ -74,7 +78,6 @@ def run_fmp_ingestion():
     balance_master = []
     cashflow_master = []
     profile_master = []
-    ownership_master = []
 
     for idx, ticker in enumerate(TARGET_TICKERS, start=1):
         logging.info(
@@ -173,15 +176,43 @@ def run_fmp_ingestion():
         logging.info("=" * 60)
         logging.info("✓ FMP Ingestion Complete")
         logging.info("=" * 60)
-        return "FMP Ingestion Complete", 200
+
+        return {
+            "status": "success",
+            "message": f"Loaded {len(income_master) + len(balance_master) + len(cashflow_master) + len(profile_master)} records",
+            "code": 200,
+        }
 
     except Exception as e:
         logging.error(f"BigQuery Load Failed: {e}")
         logging.error("=" * 60)
-        return "Database Error", 500
+        return {"status": "error", "message": str(e), "code": 500}
 
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    logging.info(f"🚀 Starting FMP Fundamental Ingestion Service on port {port}")
-    app.run(host="0.0.0.0", port=port)
+# Cloud Functions entry point (Pub/Sub triggered)
+@functions_framework.cloud_event
+def run_fmp_ingestion(cloud_event):
+    """
+    Cloud Functions entry point triggered by Pub/Sub.
+    When a message is published to the topic, this function is invoked.
+    Pub/Sub message data is automatically decoded and passed to the function.
+    """
+    logging.info("Cloud Event received from Pub/Sub")
+
+    try:
+        # Parse the Pub/Sub message (optional - useful for debugging)
+        if cloud_event.data:
+            pubsub_message = cloud_event.data
+            if isinstance(pubsub_message, dict) and "message" in pubsub_message:
+                message_data = pubsub_message["message"].get("data")
+                if message_data:
+                    decoded_message = base64.b64decode(message_data).decode()
+                    logging.info(f"Pub/Sub message: {decoded_message}")
+
+        result = run_fmp_ingestion_impl()
+        logging.info(f"Result: {result}")
+        return result
+
+    except Exception as e:
+        logging.error(f"Unexpected error in Cloud Function: {e}")
+        return {"status": "error", "message": str(e), "code": 500}
