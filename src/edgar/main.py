@@ -14,7 +14,7 @@ logging.basicConfig(
 
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
 
-# CICD Test: v1.0.1
+# CICD Test: v3.0.0 (Cloud Functions)
 
 # The SEC strictly requires you to declare your identity
 HEADERS = {
@@ -55,7 +55,7 @@ WHALE_CIKS = {
 def get_ticker_cik_mapping(target_tickers, headers):
     """
     Downloads the SEC's master ticker list and returns a clean dictionary
-    mapping your specific target tickers to their 10-digit padded CIKs.
+    mapping your specific target tickers to their 10-digit padded CIKs..
     """
     url = "https://www.sec.gov/files/company_tickers.json"
 
