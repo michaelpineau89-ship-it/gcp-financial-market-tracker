@@ -1,4 +1,0 @@
-pandas==2.2.0
-requests==2.33.0
-pandas-gbq==0.34.1
-functions-framework==3.5.0
