@@ -1,7 +1,6 @@
 import pytest
 import os
 import json
-import base64
 from unittest.mock import Mock, patch
 import pandas as pd
 
@@ -174,55 +173,46 @@ class TestRunAlphaVantageIngestionImpl:
 
 
 class TestRunAlphaVantageIngestion:
-    """Test suite for Cloud Functions entry point"""
+    """Test suite for Cloud Functions HTTP entry point"""
 
     @patch("main.run_alphavantage_ingestion_impl")
-    def test_run_alphavantage_ingestion_cloud_event_success(self, mock_impl):
-        """Test Cloud Functions handler with successful execution"""
+    def test_run_alphavantage_ingestion_http_success(self, mock_impl):
+        """Test HTTP handler with successful execution"""
         mock_impl.return_value = {"status": "success", "code": 200, "message": "OK"}
 
-        mock_event = Mock()
-        mock_event.data = None
+        mock_request = Mock()
 
-        result = run_alphavantage_ingestion(mock_event)
+        response_body, status_code, headers = run_alphavantage_ingestion(mock_request)
 
-        assert result["status"] == "success"
+        assert response_body["status"] == "success"
+        assert status_code == 200
         assert mock_impl.called
 
     @patch("main.run_alphavantage_ingestion_impl")
-    def test_run_alphavantage_ingestion_cloud_event_with_pubsub_message(
-        self, mock_impl
-    ):
-        """Test Cloud Functions handler with Pub/Sub message data"""
+    def test_run_alphavantage_ingestion_http_with_request_data(self, mock_impl):
+        """Test HTTP handler with request data"""
         mock_impl.return_value = {"status": "success", "code": 200, "message": "OK"}
 
-        mock_event = Mock()
-        message_payload = json.dumps({"action": "ingest"}).encode()
-        encoded_payload = base64.b64encode(message_payload)
+        mock_request = Mock()
+        mock_request.get_json.return_value = {"action": "ingest"}
 
-        mock_event.data = {
-            "message": {
-                "data": encoded_payload.decode(),
-            }
-        }
+        response_body, status_code, headers = run_alphavantage_ingestion(mock_request)
 
-        result = run_alphavantage_ingestion(mock_event)
-
-        assert result["status"] == "success"
+        assert response_body["status"] == "success"
+        assert status_code == 200
         assert mock_impl.called
 
     @patch("main.run_alphavantage_ingestion_impl")
-    def test_run_alphavantage_ingestion_cloud_event_error(self, mock_impl):
-        """Test Cloud Functions handler with execution error"""
+    def test_run_alphavantage_ingestion_http_error(self, mock_impl):
+        """Test HTTP handler with execution error"""
         mock_impl.side_effect = Exception("Unexpected error")
 
-        mock_event = Mock()
-        mock_event.data = None
+        mock_request = Mock()
 
-        result = run_alphavantage_ingestion(mock_event)
+        response_body, status_code, headers = run_alphavantage_ingestion(mock_request)
 
-        assert result["status"] == "error"
-        assert result["code"] == 500
+        assert response_body["status"] == "error"
+        assert status_code == 500
 
 
 class TestDataCleaning:

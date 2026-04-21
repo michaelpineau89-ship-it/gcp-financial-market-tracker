@@ -13,8 +13,7 @@ env:
   FUNCTION_NAME: 'alphavantage-ingestor'
   RUNTIME: 'python311'
   TIMEOUT: '540'  # 9 minutes (max for event-triggered functions)
-  MEMORY: '1024MB'
-  PUBSUB_TOPIC: 'daily-market-ingestion-trigger'
+  MEMORY: '128MB'  # Minimum for small function size
 
 jobs:
   ci-checks:
