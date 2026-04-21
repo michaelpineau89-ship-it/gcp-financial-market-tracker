@@ -13,7 +13,7 @@ env:
   FUNCTION_NAME: 'alphavantage-ingestor'
   RUNTIME: 'python311'
   TIMEOUT: '540'  # 9 minutes (max for event-triggered functions)
-  MEMORY: '128MB'  # Minimum for small function size
+  MEMORY: '128Mi'  # Minimum for small function size
 
 jobs:
   ci-checks:
