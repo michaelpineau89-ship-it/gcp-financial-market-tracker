@@ -12,7 +12,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# CICD Test: v3.0.6 (Cloud Functions)
+# CICD Test: v3.0.7 (Cloud Functions)
 
 TARGET_TICKERS = [
     "AAPL",
@@ -63,6 +63,11 @@ def get_data(ticker, key):
 
         if r.status_code == 200:
             logging.debug(f"Query Success | Ticker: {ticker} | Response: 200")
+        elif r.status_code == 429:
+            logging.warning(
+                f"Rate limit hit | Ticker: {ticker} | Status_Code: 429 | Response: {r.text}"
+            )
+            raise requests.exceptions.HTTPError("429 Too Many Requests")
         else:
             logging.warning(
                 f"Query failed | Ticker: {ticker} | Status_Code: {r.status_code} | Response: {r.text}"
@@ -71,6 +76,9 @@ def get_data(ticker, key):
         data = r.json()
         # Safe extraction in case the API rate-limits us and returns an Error/Information message
         return data.get("Global Quote", None)
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"HTTP error fetching data for {ticker}: {e}")
+        return None
     except Exception as e:
         logging.error(f"Error fetching data for {ticker}: {e}")
         return None
@@ -96,8 +104,8 @@ def run_alphavantage_ingestion_impl():
             logging.warning(f"Failed to fetch data for {ticker}. Check API limits.")
 
         if count < len(TARGET_TICKERS):
-            logging.info("Waiting 15 seconds due to rate limits")
-            time.sleep(15)
+            logging.info("Waiting 20 seconds due to rate limits")
+            time.sleep(20)
 
     logging.info("=" * 60)
     logging.info("Loading Data to BigQuery...")

@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import logging
 import pandas_gbq
+import time
 import functions_framework
 
 logging.basicConfig(
@@ -11,7 +12,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# CICD Test: v3.0.6 (Cloud Functions)
+# CICD Test: v3.0.7 (Cloud Functions)
 
 API_KEY = os.environ.get("API_KEY")
 PROJECT = os.environ.get("PROJECT_ID", "mike-personal-portfolio")
@@ -119,6 +120,12 @@ def run_fmp_ingestion_impl():
             logging.debug(f"  ✓ Found profile for {ticker}")
 
         logging.info(f"✓ Completed {ticker}")
+
+        # Rate limiting: add delay between ticker requests to respect FMP API limits
+        if idx < len(TARGET_TICKERS):
+            logging.info("Waiting 3 seconds between ticker requests (FMP rate limiting)")
+            time.sleep(3)
+
     # Batch Load to BigQuery
     logging.info("=" * 60)
     logging.info("Loading data to BigQuery...")
