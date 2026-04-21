@@ -14,7 +14,6 @@ env:
   RUNTIME: 'python311'
   TIMEOUT: '540'  # 9 minutes for full pipeline
   MEMORY: '1024MB'
-  PUBSUB_TOPIC: 'daily-market-ingestion-trigger'
 
 jobs:
   ci-checks:
@@ -73,7 +72,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
 
-      # Deploy Cloud Function with Pub/Sub trigger
+      # Deploy Cloud Function with HTTP trigger
       - name: Deploy Cloud Function
         run: |
           gcloud functions deploy ${{ env.FUNCTION_NAME }} \
@@ -82,7 +81,7 @@ jobs:
             --region=${{ env.REGION }} \
             --source=src/finnhub \
             --entry-point=run_finnhub_ingestion \
-            --trigger-topic=${{ env.PUBSUB_TOPIC }} \
+            --trigger-http \
             --timeout=${{ env.TIMEOUT }} \
             --memory=${{ env.MEMORY }} \
             --project=${{ env.PROJECT_ID }} \
@@ -104,7 +103,9 @@ jobs:
           echo "===== FUNCTION DEPLOYED ====="
           echo "Name: ${{ env.FUNCTION_NAME }}"
           echo "Region: ${{ env.REGION }}"
-          echo "Trigger: Pub/Sub Topic '${{ env.PUBSUB_TOPIC }}'"
+          echo "Trigger: HTTP"
           echo ""
-          echo "To manually trigger the function, run:"
-          echo "  gcloud pubsub topics publish ${{ env.PUBSUB_TOPIC }} --message '{\"action\": \"ingest\"}' --project=${{ env.PROJECT_ID }}"
+          echo "To manually trigger the function via HTTP, run:"
+          echo "  gcloud functions call ${{ env.FUNCTION_NAME }} --gen2 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}"
+          echo ""
+          echo "To schedule daily runs, create a Cloud Scheduler job that sends HTTP POST requests to the function's URL"

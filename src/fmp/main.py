@@ -3,7 +3,6 @@ import requests
 import pandas as pd
 import logging
 import pandas_gbq
-import base64
 import functions_framework
 
 logging.basicConfig(
@@ -191,30 +190,28 @@ def run_fmp_ingestion_impl():
         return {"status": "error", "message": str(e), "code": 500}
 
 
-# Cloud Functions entry point (Pub/Sub triggered)
-@functions_framework.cloud_event
-def run_fmp_ingestion(cloud_event):
+# Cloud Functions entry point (HTTP triggered)
+@functions_framework.http
+def run_fmp_ingestion(request):
     """
-    Cloud Functions entry point triggered by Pub/Sub.
-    When a message is published to the topic, this function is invoked.
-    Pub/Sub message data is automatically decoded and passed to the function.
+    Cloud Functions entry point triggered by HTTP.
+    Can be invoked by Cloud Scheduler or direct HTTP requests.
     """
-    logging.info("Cloud Event received from Pub/Sub")
+    logging.info("HTTP request received")
 
     try:
-        # Parse the Pub/Sub message (optional - useful for debugging)
-        if cloud_event.data:
-            pubsub_message = cloud_event.data
-            if isinstance(pubsub_message, dict) and "message" in pubsub_message:
-                message_data = pubsub_message["message"].get("data")
-                if message_data:
-                    decoded_message = base64.b64decode(message_data).decode()
-                    logging.info(f"Pub/Sub message: {decoded_message}")
-
         result = run_fmp_ingestion_impl()
         logging.info(f"Result: {result}")
-        return result
+        return (
+            {"status": "success", "data": result},
+            200,
+            {"Content-Type": "application/json"},
+        )
 
     except Exception as e:
         logging.error(f"Unexpected error in Cloud Function: {e}")
-        return {"status": "error", "message": str(e), "code": 500}
+        return (
+            {"status": "error", "message": str(e), "code": 500},
+            500,
+            {"Content-Type": "application/json"},
+        )

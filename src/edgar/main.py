@@ -6,7 +6,6 @@ import re
 import logging
 import pandas_gbq
 import functions_framework
-from cloudevents.http import CloudEvent
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -229,11 +228,11 @@ def run_edgar_ingestion_impl():
         return {"code": 500, "message": "No filings processed"}
 
 
-@functions_framework.cloud_event
-def run_edgar_ingestion(cloud_event: CloudEvent) -> dict:
+@functions_framework.http
+def run_edgar_ingestion(request):
     """Cloud Functions entry point for SEC EDGAR ingestion.
 
-    Triggered by Pub/Sub event with optional message payload.
+    Triggered by HTTP request from Cloud Scheduler or direct invocation.
     """
     logging.info("=" * 60)
     logging.info("Starting SEC EDGAR Ingestion Pipeline (Cloud Functions)...")
@@ -245,7 +244,15 @@ def run_edgar_ingestion(cloud_event: CloudEvent) -> dict:
 
     try:
         result = run_edgar_ingestion_impl()
-        return result
+        return (
+            {"status": "success", "data": result},
+            200,
+            {"Content-Type": "application/json"},
+        )
     except Exception as e:
         logging.error(f"Cloud Functions handler error: {e}")
-        return {"code": 500, "message": f"Error: {e}"}
+        return (
+            {"status": "error", "message": f"Error: {e}", "code": 500},
+            500,
+            {"Content-Type": "application/json"},
+        )
