@@ -14,7 +14,6 @@ env:
   RUNTIME: 'python311'
   TIMEOUT: '540'  # 9 minutes (max for event-triggered functions)
   MEMORY: '1024MB'
-  PUBSUB_TOPIC: 'daily-market-ingestion-trigger'
 
 jobs:
   ci-checks:
@@ -81,7 +80,7 @@ jobs:
             --region=${{ env.REGION }} \
             --source=src/edgar \
             --entry-point=run_edgar_ingestion \
-            --trigger-topic=${{ env.PUBSUB_TOPIC }} \
+            --trigger-http \
             --timeout=${{ env.TIMEOUT }} \
             --memory=${{ env.MEMORY }} \
             --project=${{ env.PROJECT_ID }} \
@@ -94,3 +93,15 @@ jobs:
             --region=${{ env.REGION }} \
             --gen2 \
             --project=${{ env.PROJECT_ID }}
+
+      - name: Display Invocation Info
+        run: |
+          echo "===== FUNCTION DEPLOYED ====="
+          echo "Name: ${{ env.FUNCTION_NAME }}"
+          echo "Region: ${{ env.REGION }}"
+          echo "Trigger: HTTP"
+          echo ""
+          echo "To manually trigger the function via HTTP, run:"
+          echo "  gcloud functions call ${{ env.FUNCTION_NAME }} --gen2 --region=${{ env.REGION }} --project=${{ env.PROJECT_ID }}"
+          echo ""
+          echo "To schedule daily runs, create a Cloud Scheduler job that sends HTTP POST requests to the function's URL"
