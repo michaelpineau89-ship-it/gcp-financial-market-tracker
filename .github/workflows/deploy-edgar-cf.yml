@@ -13,7 +13,7 @@ env:
   FUNCTION_NAME: 'edgar-ingestor'
   RUNTIME: 'python311'
   TIMEOUT: '540'  # 9 minutes (max for event-triggered functions)
-  MEMORY: '256Mi'  # Increased for reliable container startup
+  MEMORY: '512Mi'  # Higher memory for SEC EDGAR XML parsing operations
 
 jobs:
   ci-checks:
