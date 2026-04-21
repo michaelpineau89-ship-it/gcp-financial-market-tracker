@@ -3,9 +3,7 @@ import pandas as pd
 import os
 import json
 from unittest.mock import Mock, patch, MagicMock, call
-from cloudevents.http import CloudEvent
 import sys
-import base64
 import pandas_gbq
 
 # Add parent directory to path to import main module
@@ -285,56 +283,36 @@ class TestRunEdgarIngestionImpl:
 
 
 class TestRunEdgarIngestion:
-    """Test Cloud Functions event handler."""
+    """Test Cloud Functions HTTP request handler."""
 
-    def test_run_edgar_ingestion_cloud_event_success(self):
-        """Test Cloud Functions handler with successful ingestion."""
-        # Create a mock CloudEvent
-        cloud_event = CloudEvent(
-            {
-                "specversion": "1.0",
-                "type": "com.google.cloud.pubsub.topic.publish",
-                "source": "//pubsub.googleapis.com/projects/test-project/topics/edgar-ingestion",
-                "id": "1234567890",
-                "time": "2025-04-18T00:00:00Z",
-                "datacontenttype": "application/json",
-            },
-            {
-                "message": {
-                    "data": base64.b64encode(b"test").decode(),
-                    "messageId": "1234",
-                    "publishTime": "2025-04-18T00:00:00Z",
-                }
-            },
-        )
+    def test_run_edgar_ingestion_http_success(self):
+        """Test HTTP handler with successful ingestion."""
+        # Create a mock HTTP request
+        mock_request = Mock()
+        mock_request.get_json.return_value = {}
 
         with patch("main.run_edgar_ingestion_impl") as mock_impl:
             mock_impl.return_value = {"code": 200, "message": "Success"}
 
-            result = main.run_edgar_ingestion(cloud_event)
+            response_body, status_code, headers = main.run_edgar_ingestion(mock_request)
 
-            assert result["code"] == 200
+            assert response_body["status"] == "success"
+            assert status_code == 200
+            assert headers["Content-Type"] == "application/json"
             mock_impl.assert_called_once()
 
-    def test_run_edgar_ingestion_cloud_event_error(self):
-        """Test error handling in Cloud Functions handler."""
-        cloud_event = CloudEvent(
-            {
-                "specversion": "1.0",
-                "type": "com.google.cloud.pubsub.topic.publish",
-                "source": "//pubsub.googleapis.com/projects/test-project/topics/edgar-ingestion",
-                "id": "1234567890",
-            },
-            {},
-        )
+    def test_run_edgar_ingestion_http_error(self):
+        """Test error handling in HTTP handler."""
+        mock_request = Mock()
 
         with patch("main.run_edgar_ingestion_impl") as mock_impl:
             mock_impl.side_effect = Exception("Test error")
 
-            result = main.run_edgar_ingestion(cloud_event)
+            response_body, status_code, headers = main.run_edgar_ingestion(mock_request)
 
-            assert result["code"] == 500
-            assert "Error" in result["message"]
+            assert response_body["status"] == "error"
+            assert status_code == 500
+            assert "Error" in response_body["message"]
 
 
 class TestTargetTickersConfiguration:
