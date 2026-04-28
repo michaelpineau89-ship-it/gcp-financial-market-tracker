@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/alphavantage/**'
+      - 'src/bronze/alphavantage/**'
 
 env:
   PROJECT_ID: 'mike-personal-portfolio'
@@ -38,18 +38,18 @@ jobs:
       - name: Check Formatting with Black
         uses: psf/black@stable
         with:
-          src: "./src/alphavantage"
+          src: "./src/bronze/alphavantage"
           options: '--check'
 
       - name: Security Scan with bandit
         run: |
           pip install bandit
-          bandit -r ./src/alphavantage -lll
+          bandit -r ./src/bronze/alphavantage -lll
 
       - name: Install Dependencies and Run Tests
         run: |
-          pip install -r src/alphavantage/requirements.txt -r src/alphavantage/requirements-test.txt
-          pytest src/alphavantage/tests/ -v --cov=src/alphavantage --cov-report=term-missing --cov-fail-under=70
+          pip install -r src/bronze/alphavantage/requirements.txt -r src/bronze/alphavantage/requirements-test.txt
+          pytest src/bronze/alphavantage/tests/ -v --cov=src/bronze/alphavantage --cov-report=term-missing --cov-fail-under=70
 
 
   deploy:
@@ -79,7 +79,7 @@ jobs:
             --gen2 \
             --runtime=${{ env.RUNTIME }} \
             --region=${{ env.REGION }} \
-            --source=src/alphavantage \
+            --source=src/bronze/alphavantage \
             --entry-point=run_alphavantage_ingestion \
             --trigger-http \
             --timeout=${{ env.TIMEOUT }} \

@@ -1,0 +1,20 @@
+financial_market_tracker:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: oauth
+      project: mike-personal-portfolio
+      dataset: market_tracker
+      location: US
+      threads: 4
+      timeout_seconds: 300
+
+    dev:
+      type: bigquery
+      method: oauth
+      project: mike-personal-portfolio
+      dataset: market_tracker_dev
+      location: US
+      threads: 4
+      timeout_seconds: 300

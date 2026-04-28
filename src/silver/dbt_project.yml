@@ -1,0 +1,25 @@
+name: 'financial_market_tracker_silver'
+version: '1.0.0'
+config-version: 2
+
+profile: 'financial_market_tracker'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  financial_market_tracker_silver:
+    staging:
+      +materialized: view
+      +schema: silver
+    intermediate:
+      +materialized: table
+      +schema: silver

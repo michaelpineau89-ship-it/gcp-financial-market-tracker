@@ -1,0 +1,77 @@
+name: Run Silver Layer (dbt + BigQuery)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/silver/**'
+  workflow_run:
+    workflows:
+      - "Deploy Alpha Vantage Ingestor (Cloud Functions)"
+      - "Deploy EDGAR Ingestor (Cloud Functions)"
+      - "Deploy Finnhub Ingestor (Cloud Functions)"
+      - "Deploy FMP Ingestor (Cloud Functions)"
+    types:
+      - completed
+
+env:
+  PROJECT_ID: 'mike-personal-portfolio'
+  DBT_PROFILES_DIR: './src/silver'
+
+jobs:
+  dbt-silver:
+    name: dbt Build & Test
+    runs-on: ubuntu-latest
+    # Only run on workflow_run if the triggering workflow succeeded
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      id-token: 'write'
+      contents: 'read'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: |
+          pip install -r src/silver/requirements.txt
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/166016129616/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider-v2'
+          service_account: 'github-actions-sa@mike-personal-portfolio.iam.gserviceaccount.com'
+
+      - name: Install dbt packages
+        working-directory: src/silver
+        run: dbt deps
+
+      - name: dbt run
+        working-directory: src/silver
+        run: |
+          dbt run \
+            --profiles-dir . \
+            --target prod \
+            --select staging
+
+      - name: dbt test
+        working-directory: src/silver
+        run: |
+          dbt test \
+            --profiles-dir . \
+            --target prod \
+            --select staging
+
+      - name: dbt docs generate
+        working-directory: src/silver
+        run: |
+          dbt docs generate \
+            --profiles-dir . \
+            --target prod

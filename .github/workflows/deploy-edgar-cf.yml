@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/edgar/**'
+      - 'src/bronze/edgar/**'
 
 env:
   PROJECT_ID: 'mike-personal-portfolio'
@@ -38,18 +38,18 @@ jobs:
       - name: Check Formatting with Black
         uses: psf/black@stable
         with:
-          src: "./src/edgar"
+          src: "./src/bronze/edgar"
           options: '--check'
 
       - name: Security Scan with bandit
         run: |
           pip install bandit
-          bandit -r ./src/edgar -lll
+          bandit -r ./src/bronze/edgar -lll
 
       - name: Install Dependencies and Run Tests
         run: |
-          pip install -r src/edgar/requirements.txt -r src/edgar/requirements-test.txt
-          pytest src/edgar/tests/ -v --cov=src/edgar --cov-report=term-missing --cov-fail-under=70
+          pip install -r src/bronze/edgar/requirements.txt -r src/bronze/edgar/requirements-test.txt
+          pytest src/bronze/edgar/tests/ -v --cov=src/bronze/edgar --cov-report=term-missing --cov-fail-under=70
 
 
   deploy:
@@ -78,7 +78,7 @@ jobs:
             --gen2 \
             --runtime=${{ env.RUNTIME }} \
             --region=${{ env.REGION }} \
-            --source=src/edgar \
+            --source=src/bronze/edgar \
             --entry-point=run_edgar_ingestion \
             --trigger-http \
             --timeout=${{ env.TIMEOUT }} \

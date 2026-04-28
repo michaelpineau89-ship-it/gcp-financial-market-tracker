@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/finnhub/**'
+      - 'src/bronze/finnhub/**'
 
 env:
   PROJECT_ID: 'mike-personal-portfolio'
@@ -38,18 +38,18 @@ jobs:
       - name: Check Formatting with Black
         uses: psf/black@stable
         with:
-          src: "./src/finnhub"
+          src: "./src/bronze/finnhub"
           options: '--check'
 
       - name: Security Scan with bandit
         run: |
           pip install bandit
-          bandit -r ./src/finnhub -lll
+          bandit -r ./src/bronze/finnhub -lll
 
       - name: Install Dependencies and Run Tests
         run: |
-          pip install -r src/finnhub/requirements.txt -r src/finnhub/requirements-test.txt
-          pytest src/finnhub/tests/ -v --cov=src/finnhub --cov-report=term-missing --cov-fail-under=70
+          pip install -r src/bronze/finnhub/requirements.txt -r src/bronze/finnhub/requirements-test.txt
+          pytest src/bronze/finnhub/tests/ -v --cov=src/bronze/finnhub --cov-report=term-missing --cov-fail-under=70
 
 
   deploy:
@@ -79,7 +79,7 @@ jobs:
             --gen2 \
             --runtime=${{ env.RUNTIME }} \
             --region=${{ env.REGION }} \
-            --source=src/finnhub \
+            --source=src/bronze/finnhub \
             --entry-point=run_finnhub_ingestion \
             --trigger-http \
             --timeout=${{ env.TIMEOUT }} \

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/fmp/**'
+      - 'src/bronze/fmp/**'
 
 env:
   PROJECT_ID: 'mike-personal-portfolio'
@@ -38,18 +38,18 @@ jobs:
       - name: Check Formatting with Black
         uses: psf/black@stable
         with:
-          src: "./src/fmp"
+          src: "./src/bronze/fmp"
           options: '--check'
 
       - name: Security Scan with bandit
         run: |
           pip install bandit
-          bandit -r ./src/fmp -lll
+          bandit -r ./src/bronze/fmp -lll
 
       - name: Install Dependencies and Run Tests
         run: |
-          pip install -r src/fmp/requirements.txt -r src/fmp/requirements-test.txt
-          pytest src/fmp/tests/ -v --cov=src/fmp --cov-report=term-missing --cov-fail-under=70
+          pip install -r src/bronze/fmp/requirements.txt -r src/bronze/fmp/requirements-test.txt
+          pytest src/bronze/fmp/tests/ -v --cov=src/bronze/fmp --cov-report=term-missing --cov-fail-under=70
 
 
   deploy:
@@ -79,7 +79,7 @@ jobs:
             --gen2 \
             --runtime=${{ env.RUNTIME }} \
             --region=${{ env.REGION }} \
-            --source=src/fmp \
+            --source=src/bronze/fmp \
             --entry-point=run_fmp_ingestion \
             --trigger-http \
             --timeout=${{ env.TIMEOUT }} \

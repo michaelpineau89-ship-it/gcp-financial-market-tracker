@@ -1,0 +1,151 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: mike-personal-portfolio
+    schema: market_tracker
+    description: Raw ingested data from all bronze Cloud Function ingestors
+
+    tables:
+      # Alpha Vantage
+      - name: bronze_alpha_quotes
+        description: Real-time stock quotes from Alpha Vantage GLOBAL_QUOTE endpoint
+        columns:
+          - name: symbol
+          - name: open
+          - name: high
+          - name: low
+          - name: price
+          - name: volume
+          - name: latest_trading_day
+          - name: previous_close
+          - name: change
+          - name: change_percent
+          - name: _ingested_at
+
+      # Finnhub
+      - name: bronze_finnhub_news
+        description: Company news from Finnhub for the past 14 days
+        columns:
+          - name: ticker
+          - name: category
+          - name: datetime
+          - name: headline
+          - name: id
+          - name: image
+          - name: related
+          - name: source
+          - name: summary
+          - name: url
+          - name: _ingested_at
+
+      - name: bronze_finnhub_recommendations
+        description: Analyst recommendation trends from Finnhub
+        columns:
+          - name: ticker
+          - name: period
+          - name: strongBuy
+          - name: buy
+          - name: hold
+          - name: sell
+          - name: strongSell
+          - name: _ingested_at
+
+      - name: bronze_finnhub_financials
+        description: Basic financial metrics from Finnhub
+        columns:
+          - name: ticker
+          - name: metric
+          - name: _ingested_at
+
+      - name: bronze_finnhub_insider
+        description: Insider sentiment data from Finnhub
+        columns:
+          - name: ticker
+          - name: symbol
+          - name: year
+          - name: month
+          - name: change
+          - name: mspr
+          - name: _ingested_at
+
+      # EDGAR
+      - name: bronze_edgar_submissions
+        description: SEC EDGAR company submission metadata
+        columns:
+          - name: cik
+          - name: entity_name
+          - name: ticker
+          - name: entity_type
+          - name: sic
+          - name: sic_description
+          - name: fiscal_year_end
+          - name: is_whale
+          - name: _ingested_at
+
+      - name: bronze_edgar_13f
+        description: SEC 13F-HR institutional holdings filings
+        columns:
+          - name: cik
+          - name: entity_name
+          - name: filing_date
+          - name: period_of_report
+          - name: name_of_issuer
+          - name: title_of_class
+          - name: cusip
+          - name: value
+          - name: shares_or_principal_amount
+          - name: _ingested_at
+
+      # Financial Modeling Prep
+      - name: bronze_fmp_income
+        description: Income statements from FMP
+        columns:
+          - name: symbol
+          - name: date
+          - name: period
+          - name: revenue
+          - name: grossProfit
+          - name: operatingIncome
+          - name: netIncome
+          - name: eps
+          - name: _ingested_at
+
+      - name: bronze_fmp_balance
+        description: Balance sheet statements from FMP
+        columns:
+          - name: symbol
+          - name: date
+          - name: period
+          - name: totalAssets
+          - name: totalLiabilities
+          - name: totalEquity
+          - name: cashAndCashEquivalents
+          - name: totalDebt
+          - name: _ingested_at
+
+      - name: bronze_fmp_cashflow
+        description: Cash flow statements from FMP
+        columns:
+          - name: symbol
+          - name: date
+          - name: period
+          - name: operatingCashFlow
+          - name: capitalExpenditure
+          - name: freeCashFlow
+          - name: dividendsPaid
+          - name: _ingested_at
+
+      - name: bronze_fmp_profile
+        description: Company profiles from FMP
+        columns:
+          - name: symbol
+          - name: companyName
+          - name: sector
+          - name: industry
+          - name: country
+          - name: exchange
+          - name: mktCap
+          - name: price
+          - name: beta
+          - name: _ingested_at
