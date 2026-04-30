@@ -207,3 +207,6 @@ marimo/_lsp/
 __marimo__/
 
 KEYS.conf
+src/silver/.venv/
+dbt_packages/
+logs/
