@@ -1,0 +1,409 @@
+version: 2
+
+models:
+
+  # ---------------------------------------------------------------------------
+  # Alpha Vantage — Real-time quotes
+  # ---------------------------------------------------------------------------
+  - name: stg_alpha_quotes
+    description: >
+      Deduplicated real-time stock quotes from Alpha Vantage's GLOBAL_QUOTE
+      endpoint. One row per symbol per trading day.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [symbol, trading_date]
+    columns:
+      - name: symbol
+        tests:
+          - not_null
+      - name: trading_date
+        tests:
+          - not_null
+      - name: price
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+      - name: open
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+      - name: high
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+      - name: low
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+      - name: volume
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: change_percent
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -100
+                max_value: 100
+                inclusive: true
+
+  # ---------------------------------------------------------------------------
+  # Finnhub — Company news
+  # ---------------------------------------------------------------------------
+  - name: stg_finnhub_news
+    description: >
+      Deduplicated company news articles from Finnhub for the past 14 days.
+      One row per unique article ID.
+    columns:
+      - name: article_id
+        tests:
+          - unique
+          - not_null
+      - name: published_at
+        tests:
+          - not_null
+      - name: headline
+        tests:
+          - not_null
+      - name: source
+        tests:
+          - not_null
+
+  # ---------------------------------------------------------------------------
+  # Finnhub — Analyst recommendations
+  # ---------------------------------------------------------------------------
+  - name: stg_finnhub_recommendations
+    description: >
+      Monthly analyst recommendation consensus from Finnhub. One row per
+      ticker per month.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ticker, period]
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: period
+        tests:
+          - not_null
+      - name: strong_buy
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: buy
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: hold
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: sell
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: strong_sell
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: total_bullish
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= strong_buy + buy"
+      - name: total_bearish
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= sell + strong_sell"
+
+  # ---------------------------------------------------------------------------
+  # Finnhub — Basic financial metrics (key metrics API)
+  # ---------------------------------------------------------------------------
+  - name: stg_finnhub_financials
+    description: >
+      Latest basic financial metrics from Finnhub's company-basic-financials
+      endpoint. One row per ticker (most recent snapshot).
+    columns:
+      - name: ticker
+        tests:
+          - unique
+          - not_null
+      - name: metric
+
+  # ---------------------------------------------------------------------------
+  # Finnhub — Insider sentiment
+  # ---------------------------------------------------------------------------
+  - name: stg_finnhub_insider
+    description: >
+      Monthly insider share purchase sentiment from Finnhub. One row per
+      ticker per year/month.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ticker, year, month]
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: year
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 2000
+                inclusive: true
+      - name: month
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 12
+                inclusive: true
+      - name: period_start
+        tests:
+          - not_null
+
+  # ---------------------------------------------------------------------------
+  # SEC EDGAR — Company submissions index
+  # ---------------------------------------------------------------------------
+  - name: stg_edgar_submissions
+    description: >
+      SEC EDGAR company submission metadata. One row per CIK (most recent
+      filing snapshot).
+    columns:
+      - name: cik
+        tests:
+          - unique
+          - not_null
+      - name: entity_name
+        tests:
+          - not_null
+      - name: accession_number
+        tests:
+          - not_null
+
+  # ---------------------------------------------------------------------------
+  # SEC EDGAR — 13F-HR institutional holdings
+  # ---------------------------------------------------------------------------
+  - name: stg_edgar_13f
+    description: >
+      SEC 13F-HR institutional equity holdings filings. One row per
+      institution (CIK) per holding (CUSIP), most recent filing.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [cik, cusip]
+    columns:
+      - name: cik
+        tests:
+          - not_null
+      - name: cusip
+        tests:
+          - not_null
+      - name: issuer_name
+        tests:
+          - not_null
+      - name: value_thousands_usd
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: value_usd
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= value_thousands_usd * 1000"
+
+  # ---------------------------------------------------------------------------
+  # Financial Modeling Prep — Income statements
+  # ---------------------------------------------------------------------------
+  - name: stg_fmp_income
+    description: >
+      Quarterly and annual income statements from FMP. One row per ticker
+      per period end date per period type.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ticker, period_end_date, period]
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: period_end_date
+        tests:
+          - not_null
+      - name: period
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['FY', 'Q1', 'Q2', 'Q3', 'Q4']
+      - name: revenue
+        tests:
+          - not_null
+      - name: gross_profit
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= revenue - cost_of_revenue"
+      - name: gross_margin
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -1
+                max_value: 1
+                inclusive: true
+      - name: net_margin
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -5
+                max_value: 1
+                inclusive: true
+      - name: ebitda
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= ebit + depreciation_and_amortization"
+
+  # ---------------------------------------------------------------------------
+  # Financial Modeling Prep — Balance sheets
+  # ---------------------------------------------------------------------------
+  - name: stg_fmp_balance
+    description: >
+      Quarterly and annual balance sheets from FMP. One row per ticker per
+      period end date per period type.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ticker, period_end_date, period]
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: period_end_date
+        tests:
+          - not_null
+      - name: period
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['FY', 'Q1', 'Q2', 'Q3', 'Q4']
+      - name: total_assets
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= total_current_assets + total_non_current_assets"
+      - name: total_liabilities
+        tests:
+          - not_null
+      - name: total_equity
+        tests:
+          - not_null
+      - name: total_liabilities_and_stockholders_equity
+        tests:
+          - not_null
+      - name: debt_to_equity
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+
+  # ---------------------------------------------------------------------------
+  # Financial Modeling Prep — Cash flow statements
+  # ---------------------------------------------------------------------------
+  - name: stg_fmp_cashflow
+    description: >
+      Quarterly and annual cash flow statements from FMP. One row per ticker
+      per period end date per period type.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ticker, period_end_date, period]
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: period_end_date
+        tests:
+          - not_null
+      - name: period
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['FY', 'Q1', 'Q2', 'Q3', 'Q4']
+      - name: operating_cash_flow
+        tests:
+          - not_null
+      - name: free_cash_flow
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= operating_cash_flow + capital_expenditure"
+
+  # ---------------------------------------------------------------------------
+  # Financial Modeling Prep — Company profiles
+  # ---------------------------------------------------------------------------
+  - name: stg_fmp_profile
+    description: >
+      Company profile metadata from FMP. One row per ticker (most recent
+      snapshot).
+    columns:
+      - name: ticker
+        tests:
+          - unique
+          - not_null
+      - name: company_name
+        tests:
+          - not_null
+      - name: market_cap
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: price
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+      - name: beta
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -15
+                max_value: 15
+                inclusive: true
