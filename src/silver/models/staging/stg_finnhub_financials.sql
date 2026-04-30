@@ -5,15 +5,16 @@ with source as (
 deduped as (
     select *,
         row_number() over (
-            partition by ticker
+            partition by symbol
             order by _ingested_at desc
         ) as _row_num
     from source
 )
 
 select
-    ticker,
+    symbol as ticker,
     metric,
+    series,
     _ingested_at
 from deduped
 where _row_num = 1

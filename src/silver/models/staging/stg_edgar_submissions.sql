@@ -14,13 +14,11 @@ deduped as (
 
 select
     cast(cik as STRING)         as cik,
-    entity_name,
-    ticker,
-    entity_type,
-    cast(sic as STRING)         as sic_code,
-    sic_description,
-    fiscal_year_end,
-    cast(is_whale as BOOL)      as is_whale,
+    entity_name as entity_name,
+    form                        as form_type,
+    fileNumber as file_number,
+    primaryDocDescription       as primary_doc_description,
+    accessionNumber             as accession_number,
     _ingested_at
 from deduped
 where _row_num = 1

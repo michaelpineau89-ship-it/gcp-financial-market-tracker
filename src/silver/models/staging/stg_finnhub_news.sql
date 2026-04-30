@@ -13,7 +13,6 @@ deduped as (
 )
 
 select
-    ticker,
     cast(id as STRING)                         as article_id,
     category,
     timestamp_seconds(cast(datetime as INT64)) as published_at,

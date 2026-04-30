@@ -5,7 +5,7 @@ with source as (
 deduped as (
     select *,
         row_number() over (
-            partition by cik, period_of_report, cusip
+            partition by cik, cusip
             order by _ingested_at desc
         ) as _row_num
     from source
@@ -15,14 +15,12 @@ deduped as (
 select
     cast(cik as STRING)                               as cik,
     entity_name,
-    cast(filing_date as DATE)                         as filing_date,
-    cast(period_of_report as DATE)                    as period_of_report,
-    name_of_issuer,
-    title_of_class,
+    nameOfIssuer                                      as issuer_name,
+    titleOfClass                                      as class_title,
     cusip,
     cast(value as INT64)                              as value_thousands_usd,
     cast(value as INT64) * 1000                       as value_usd,
-    cast(shares_or_principal_amount as INT64)         as shares,
+    shrsOrPrnAmt                                      as shares_or_principal_amount,
     _ingested_at
 from deduped
 where _row_num = 1

@@ -5,7 +5,7 @@ with source as (
 deduped as (
     select *,
         row_number() over (
-            partition by ticker, period
+            partition by symbol, period
             order by _ingested_at desc
         ) as _row_num
     from source
@@ -13,7 +13,7 @@ deduped as (
 )
 
 select
-    ticker,
+    symbol as ticker,
     cast(period as DATE)        as period,
     cast(strongBuy as INT64)    as strong_buy,
     cast(buy as INT64)          as buy,

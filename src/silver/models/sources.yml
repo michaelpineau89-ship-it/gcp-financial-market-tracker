@@ -17,9 +17,10 @@ sources:
           - name: low
           - name: price
           - name: volume
-          - name: latest_trading_day
+          - name: trading_date
           - name: previous_close
-          - name: change
+          - name: price_change
+          - name: change_percent_str
           - name: change_percent
           - name: _ingested_at
 
@@ -28,15 +29,38 @@ sources:
         description: Company news from Finnhub for the past 14 days
         columns:
           - name: ticker
-          - name: category
-          - name: datetime
-          - name: headline
-          - name: id
-          - name: image
-          - name: related
-          - name: source
-          - name: summary
-          - name: url
+          - name: period_end_date
+          - name: period
+          - name: currency
+          - name: cik
+          - name: accepted_date
+          - name: fiscal_year
+          - name: cost_of_revenue
+          - name: gross_profit
+          - name: r_and_d_expenses
+          - name: general_and_admin_expenses
+          - name: selling_and_marketing_expenses
+          - name: other_expenses
+          - name: cost_and_expenses
+          - name: net_interest_income
+          - name: interest_income
+          - name: interest_expense
+          - name: depreciation_and_amortization
+          - name: ebit
+          - name: ebitda
+          - name: non_operating_income_excluding_interest
+          - name: operating_income
+          - name: total_other_income_expenses_net
+          - name: income_before_tax
+          - name: income_tax_expense
+          - name: net_income_from_continuing_operations
+          - name: net_income_from_discontinued_operations
+          - name: other_adjustments
+          - name: net_income
+          - name: eps
+          - name: eps_diluted
+          - name: weighted_average_shs_out
+          - name: weighted_average_shs_out_diluted
           - name: _ingested_at
 
       - name: bronze_finnhub_recommendations
@@ -44,11 +68,13 @@ sources:
         columns:
           - name: ticker
           - name: period
-          - name: strongBuy
+          - name: strong_buy
           - name: buy
           - name: hold
           - name: sell
-          - name: strongSell
+          - name: strong_sell
+          - name: total_bullish
+          - name: total_bearish
           - name: _ingested_at
 
       - name: bronze_finnhub_financials
@@ -56,17 +82,20 @@ sources:
         columns:
           - name: ticker
           - name: metric
+          - name: series
           - name: _ingested_at
 
       - name: bronze_finnhub_insider
         description: Insider sentiment data from Finnhub
         columns:
           - name: ticker
-          - name: symbol
           - name: year
           - name: month
-          - name: change
-          - name: mspr
+          - name: period
+          - name: period_start
+          - name: net_purchase_shares
+          - name: net_purchase_ratio
+          - name: monthly_share_purchase_ratio
           - name: _ingested_at
 
       # EDGAR
@@ -75,13 +104,11 @@ sources:
         columns:
           - name: cik
           - name: entity_name
-          - name: ticker
-          - name: entity_type
-          - name: sic
-          - name: sic_description
-          - name: fiscal_year_end
-          - name: is_whale
-          - name: _ingested_at
+          - name: form_type
+          - name: file_number
+          - name: entity
+          - name: primary_doc_description
+          - name: accession_number
 
       - name: bronze_edgar_13f
         description: SEC 13F-HR institutional holdings filings
@@ -90,11 +117,12 @@ sources:
           - name: entity_name
           - name: filing_date
           - name: period_of_report
-          - name: name_of_issuer
-          - name: title_of_class
+          - name: issuer_name
+          - name: class_title
           - name: cusip
-          - name: value
-          - name: shares_or_principal_amount
+          - name: value_thousand_usd
+          - name: value_usd
+          - name: shares
           - name: _ingested_at
 
       # Financial Modeling Prep
@@ -102,50 +130,176 @@ sources:
         description: Income statements from FMP
         columns:
           - name: symbol
-          - name: date
+          - name: period_end_date
           - name: period
+          - name: currency
+          - name: cik
+          - name: accepted_date
+          - name: fiscal_year
           - name: revenue
+          - name: costOfRevenue
           - name: grossProfit
-          - name: operatingIncome
-          - name: netIncome
+          - name: r_and_d_expenses
+          - name: general_and_admin_expenses
+          - name: selling_and_marketing_expenses
+          - name: selling_general_and_admin_expenses
+          - name: other_expenses
+          - name: cost_and_expenses
+          - name: net_interest_income
+          - name: interest_income
+          - name: interest_expense
+          - name: depreciation_and_amortization
+          - name: ebit
+          - name: ebitda
+          - name: non_operating_income_excluding_interest
+          - name: operating_income
+          - name: total_other_income_expenses_net
+          - name: income_before_tax
+          - name: income_tax_expense
+          - name: net_income_from_continuing_operations
+          - name: net_income_from_discontinued_operations
+          - name: other_adjustments
+          - name: net_income
           - name: eps
+          - name: eps_diluted
+          - name: weighted_average_shs_out
+          - name: weighted_average_shs_out_diluted
+          - name: gross_margin
+          - name: net_margin
           - name: _ingested_at
 
       - name: bronze_fmp_balance
         description: Balance sheet statements from FMP
         columns:
-          - name: symbol
-          - name: date
+          - name: ticker
+          - name: period_end_date
+          - name: currency
+          - name: cik
+          - name: filing_date
+          - name: accepted_date
+          - name: fiscal_year
           - name: period
-          - name: totalAssets
-          - name: totalLiabilities
-          - name: totalEquity
-          - name: cashAndCashEquivalents
+          - name: cash_and_equivalents
+          - name: short_term_investments
+          - name: cash_and_short_term_investments
+          - name: net_receivables
+          - name: inventory
+          - name: prepaids
+          - name: other_current_assets
+          - name: total_current_assets
+          - name: property_plant_equipment_net
+          - name: goodwill
+          - name: intangible_assets
+          - name: goodwill_and_intangible_assets
+          - name: long_term_investments
+          - name: tax_assets
+          - name: other_non_current_assets
+          - name: total_non_current_assets
+          - name: other_assets
+          - name: total_assets
+          - name: total_payables
+          - name: accounts_payable
+          - name: other_payables
+          - name: accrued_expenses
+          - name: short_term_debt
+          - name: capital_lease_obligations_current
+          - name: tax_payables
+          - name: deferred_revenue
+          - name: other_current_liabilities
+          - name: total_current_liabilities
+          - name: long_term_debt
+          - name: capital_lease_obligations_non_current
+          - name: deferred_tax_liabilities_non_current
+          - name: other_non_current_liabilities
+          - name: total_non_current_liabilities
+          - name: other_liabilities
+          - name: total_liabilities
+          - name: treasury_stock
+          - name: preferred_stock
+          - name: common_stock
+          - name: retained_earnings
+          - name: accumulated_other_comprehensive_income_loss
+          - name: other_stockholders_equity
+          - name: total_stockholders_equity
+          - name: total_liabilities_and_stockholders_equity
           - name: totalDebt
+          - name: total_equity
+          - name: debt_to_equity
+          - name: liability_ratio
           - name: _ingested_at
 
       - name: bronze_fmp_cashflow
         description: Cash flow statements from FMP
         columns:
-          - name: symbol
-          - name: date
+          - name: ticker
+          - name: period_end_date
+          - name: currency
           - name: period
-          - name: operatingCashFlow
-          - name: capitalExpenditure
-          - name: freeCashFlow
-          - name: dividendsPaid
+          - name: filing_date
+          - name: accepted_date
+          - name: fiscal_year
+          - name: net_income
+          - name: depreciation_and_amortization
+          - name: deferred_income_tax
+          - name: stock_based_compensation
+          - name: change_in_working_capital
+          - name: accounts_receivables
+          - name: inventory
+          - name: accounts_payable
+          - name: other_working_capital
+          - name: other_non_cash_items
+          - name: net_cash_provided_by_operating_activities
+          - name: net_debt_issuance
+          - name: net_common_stock_issuance
+          - name: common_stock_issuance
+          - name: common_stock_repurchases
+          - name: net_preferred_stock_issuance
+          - name: net_dividends_paid
+          - name: preferred_dividends_paid
+          - name: other_financing_activities
+          - name: net_change_in_cash
+          - name: cash_at_end_of_period
+          - name: cash_at_beginning_of_period
+          - name: operating_cash_flow
+          - name: capital_expenditure
+          - name: free_cash_flow
+          - name: income_tax_paid
+          - name: interest_paid
           - name: _ingested_at
 
       - name: bronze_fmp_profile
         description: Company profiles from FMP
         columns:
-          - name: symbol
-          - name: companyName
+          - name: ticker
+          - name: company_name
           - name: sector
           - name: industry
           - name: country
           - name: exchange
-          - name: mktCap
+          - name: currency
+          - name: cik
+          - name: isin
+          - name: cusip
+          - name: description
+          - name: ceo
+          - name: full_time_employees
+          - name: phone
+          - name: website
+          - name: address
+          - name: city
+          - name: state
+          - name: zip
+          - name: ipo_date
+          - name: is_etf
+          - name: is_actively_trading
+          - name: is_fund
+          - name: market_cap
           - name: price
           - name: beta
+          - name: last_dividend
+          - name: range
+          - name: change
+          - name: changes_percentage
+          - name: volume
+          - name: average_volume
           - name: _ingested_at
