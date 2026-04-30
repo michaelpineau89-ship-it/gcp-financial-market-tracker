@@ -13,10 +13,25 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [symbol, trading_date]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "high >= low"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "high >= price"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "low <= price"
     columns:
       - name: symbol
         tests:
           - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_fmp_profile')
+                field: ticker
       - name: trading_date
         tests:
           - not_null
@@ -96,6 +111,12 @@ models:
       - name: ticker
         tests:
           - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_fmp_profile')
+                field: ticker
       - name: period
         tests:
           - not_null
@@ -153,6 +174,12 @@ models:
         tests:
           - unique
           - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_fmp_profile')
+                field: ticker
       - name: metric
 
   # ---------------------------------------------------------------------------
@@ -170,6 +197,12 @@ models:
       - name: ticker
         tests:
           - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_fmp_profile')
+                field: ticker
       - name: year
         tests:
           - not_null
@@ -257,6 +290,10 @@ models:
       - name: ticker
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_fmp_profile')
+                field: ticker
       - name: period_end_date
         tests:
           - not_null
@@ -266,6 +303,14 @@ models:
           - accepted_values:
               arguments:
                 values: ['FY', 'Q1', 'Q2', 'Q3', 'Q4']
+      - name: cik
+        tests:
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_edgar_submissions')
+                field: cik
       - name: revenue
         tests:
           - not_null
@@ -309,6 +354,12 @@ models:
       - name: ticker
         tests:
           - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_fmp_profile')
+                field: ticker
       - name: period_end_date
         tests:
           - not_null
@@ -318,6 +369,14 @@ models:
           - accepted_values:
               arguments:
                 values: ['FY', 'Q1', 'Q2', 'Q3', 'Q4']
+      - name: cik
+        tests:
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_edgar_submissions')
+                field: cik
       - name: total_assets
         tests:
           - not_null
@@ -355,6 +414,12 @@ models:
       - name: ticker
         tests:
           - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_fmp_profile')
+                field: ticker
       - name: period_end_date
         tests:
           - not_null
@@ -388,6 +453,14 @@ models:
       - name: company_name
         tests:
           - not_null
+      - name: cik
+        tests:
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('stg_edgar_submissions')
+                field: cik
       - name: market_cap
         tests:
           - dbt_utils.accepted_range:
